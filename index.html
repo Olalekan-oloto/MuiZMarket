@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101010">
+  <meta name="description" content="Discover digital products, tools, subscriptions and services at MuiZMarket.">
+  <title>MuiZMarket — Premium Digital Marketplace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="announcement"><span class="spark">✦</span> Welcome to your digital marketplace <span class="announcement-tag">MUIZMARKET</span></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="MuiZMarket home"><span class="brand-mark">M</span><span>MuiZ<span class="gold">Market</span><small>THE DIGITAL MARKETPLACE</small></span></a>
+    <nav class="desktop-nav"><a href="#marketplace">Marketplace</a><a href="/about">About</a><a href="/buyer">Buyer dashboard</a><a href="/seller">Seller dashboard</a><a href="/contact">Contact & AI support</a></nav>
+    <div class="top-actions"><button class="icon-btn" id="cartOpen" aria-label="Open cart">Bag <span id="cartCount" class="count">0</span></button><button id="authButton" class="btn btn-outline">Sign in</button><button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button></div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="hero-orb orb-one"></div><div class="hero-orb orb-two"></div>
+      <div class="hero-content">
+        <div class="eyebrow"><span class="live-dot"></span> YOUR NEXT DIGITAL DISCOVERY</div>
+        <h1>Good things<br>are <span class="gold-gradient">digital.</span></h1>
+        <p class="hero-copy">Discover tools, resources and digital essentials made to move your ideas forward. Everything you need, in one considered marketplace.</p>
+        <div class="hero-buttons"><a class="btn btn-gold" href="#marketplace">Explore marketplace <span>↗</span></a><button class="btn btn-quiet" id="heroAccount">Create an account <span>→</span></button></div>
+        <div class="trust-row"><div class="avatar-stack"><span>M</span><span>U</span><span>Z</span></div><div><strong>A smarter way to shop digital</strong><small>Curated products. Clear pricing. Secure checkout.</small></div></div>
+      </div>
+      <div class="hero-art" aria-hidden="true"><div class="art-ring ring-a"></div><div class="art-ring ring-b"></div><div class="art-core"><span class="core-star">✦</span><span class="core-word">MUIZ<br><b>MARKET</b></span><span class="core-caption">DIGITAL GOODS, REIMAGINED</span></div><div class="float-card card-top"><span class="float-icon">✧</span><span><b>Curated finds</b><small>Made for your next idea</small></span></div><div class="float-card card-bottom"><span class="check-mark">✓</span><span><b>Simple by design</b><small>From browse to checkout</small></span></div></div>
+      <div class="hero-bottomline"><span>TOOLS FOR YOUR NEXT CHAPTER</span><span>DESIGNED FOR DISCOVERY <i>✦</i></span></div>
+    </section>
+    <section class="benefit-strip" id="benefits"><div><span class="benefit-icon">◇</span><span><b>Curated digital goods</b><small>Explore useful digital finds</small></span></div><div><span class="benefit-icon">↗</span><span><b>Simple shopping</b><small>A clean, easy experience</small></span></div><div><span class="benefit-icon">◎</span><span><b>Order tracking</b><small>Keep your purchases together</small></span></div><div><span class="benefit-icon">✦</span><span><b>Premium feel</b><small>Every detail considered</small></span></div></section>
+    <section class="market-section" id="marketplace">
+      <div class="section-heading"><div><div class="eyebrow">THE COLLECTION</div><h2>Explore the <span class="gold-text">marketplace.</span></h2><p>Find something useful for whatever you're building next.</p></div><div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search digital products..." aria-label="Search products"></div></div>
+      <div class="filters" id="categoryFilters"></div>
+      <div id="productGrid" class="product-grid"><div class="loading-card">Loading the collection…</div></div>
+      <div class="catalog-foot"><span id="productCountText">A considered collection for digital life.</span><span>MORE TO DISCOVER <span class="gold-text">✦</span></span></div>
+    </section>
+    <section class="cta-band"><div><div class="eyebrow">YOUR ACCOUNT, YOUR WAY</div><h2>Keep your digital life<br><span class="gold-text">in one place.</span></h2><p>Create an account to manage your cart, view your order history and enjoy a more personal marketplace experience.</p><button class="btn btn-gold" id="ctaAccount">Get started <span>↗</span></button></div><div class="cta-symbol">M<span>✦</span></div></section>
+    <section class="seller-section" id="sellerPortal"><div class="section-heading"><div><div class="eyebrow">SELL WITH MUIZMARKET</div><h2>Your seller <span class="gold-text">workspace.</span></h2><p>Apply to sell, manage listings, review your subscription and request payouts.</p></div><button class="btn btn-outline" id="refreshSeller">Refresh workspace ↻</button></div><div id="sellerWorkspace" class="seller-workspace"><div class="seller-panel"><h3>Start selling</h3><p>Sign in and apply for a seller account. Your account must be approved before listing products.</p><button class="btn btn-gold" id="applySeller">Apply to become a seller ↗</button></div></div></section>
+    <section class="orders-section" id="orders"><div class="section-heading"><div><div class="eyebrow">YOUR SPACE</div><h2>My <span class="gold-text">orders.</span></h2><p>Sign in to see the purchases connected to your account. Your account dashboard keeps your real marketplace activity in one place.</p></div><button class="btn btn-outline" id="refreshOrders">Refresh orders ↻</button></div><div id="ordersList" class="orders-list"><div class="empty-state">Sign in to view your order history.</div></div></section>
+  </main>
+  <footer><a class="brand footer-brand" href="/"><span class="brand-mark">M</span><span>MuiZ<span class="gold">Market</span><small>THE DIGITAL MARKETPLACE</small></span></a><div class="footer-note">Thoughtful digital shopping.<br><span>© <span id="year"></span> MuiZMarket</span></div><div class="footer-links"><a href="#marketplace">Marketplace</a><a href="/about">About</a><a href="/buyer">Buyer dashboard</a><a href="/seller">Seller dashboard</a><a href="/contact">Contact & AI support</a></div><div class="social-links" id="socialLinks" aria-label="MuiZMarket social media"></div></footer>
+
+  <div class="overlay" id="overlay"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping cart" aria-hidden="true"><div class="drawer-head"><div><div class="eyebrow">YOUR SELECTION</div><h2>Your bag <span id="drawerCount" class="gold-text">(0)</span></h2></div><button class="close-btn" id="cartClose" aria-label="Close cart">×</button></div><div id="cartItems" class="cart-items"></div><div class="cart-footer"><div class="cart-total"><span>Subtotal</span><strong id="cartTotal">$0.00</strong></div><small id="paymentNote">Prices shown in USD.</small><button class="btn btn-gold btn-wide" id="checkoutButton">Continue to checkout ↗</button><p class="fine-print">Secure checkout is available once the marketplace owner configures a payment provider.</p></div></aside>
+
+  <div class="modal-backdrop" id="authModal"><div class="modal"><button class="close-btn modal-close" data-close-modal aria-label="Close">×</button><div class="modal-brand"><span class="brand-mark">M</span><span class="gold-text">MuiZMarket</span></div><div class="eyebrow">WELCOME TO YOUR SPACE</div><h2 id="authTitle">Sign in</h2><p class="modal-subtitle" id="authSubtitle">Sign in to manage your orders and checkout.</p><div class="auth-tabs"><button class="auth-tab active" data-mode="login">Sign in</button><button class="auth-tab" data-mode="register">Create account</button></div><form id="authForm"><label id="nameLabel" class="hidden">Your name<input id="nameField" autocomplete="name" minlength="2" maxlength="80" placeholder="Your name"></label><label>Email address<input id="emailField" type="email" autocomplete="email" required placeholder="you@example.com"></label><label>Password<input id="passwordField" type="password" autocomplete="current-password" required minlength="10" placeholder="At least 10 characters"></label><button class="btn btn-gold btn-wide" id="authSubmit" type="submit">Sign in ↗</button><div id="authError" class="form-message" role="status"></div></form><form id="verifyForm" class="hidden"><p class="seller-message">Enter the 6-digit code sent to your Gmail inbox. It expires in 10 minutes.</p><label>Email address<input id="verifyEmailField" type="email" required autocomplete="email" placeholder="you@gmail.com"></label><label>Verification code<input id="verifyCodeField" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="123456"></label><button class="btn btn-gold btn-wide" type="submit">Verify email ↗</button><button class="btn btn-outline btn-wide" id="resendCode" type="button">Resend code</button><div id="verifyError" class="form-message" role="status"></div></form><p class="fine-print">Your account is for MuiZMarket only. Never reuse a password from another service.</p></div></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="/app.js" defer></script>
+<script src="/social.js" defer></script></body>
+</html>
