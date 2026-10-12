@@ -10,3 +10,7 @@ This folder is prepared for GitHub Pages to show the styled marketplace UI. It i
 
 ## Important limits
 This is a static design/testing preview. GitHub Pages cannot run the Node.js server, database, sign-in, email verification, seller administration, or payment processing. Those features need the backend deployed to a Node.js host and the frontend configured to call it. The product cards in this preview are demonstration data, not real listings, and checkout is deliberately disabled.
+
+
+## Sign-in redirect fix
+The account sign-in handler now redirects verified users to `buyer.html` after successful Firebase sign-in. Note: GitHub Pages is static hosting; the buyer/seller order and management panels call `/api/...` endpoints that require a separately deployed backend. Without that backend, account authentication can work but order history and seller tools will not fully load.
