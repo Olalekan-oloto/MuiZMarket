@@ -1,6 +1,11 @@
+/* MuiZMarket Firebase web app configuration.
+   Web app config is public by design. Never put service-account keys or private API secrets here. */
 window.MUIZMARKET_FIREBASE_CONFIG = {
-  apiKey: "YOUR_ACTUAL_API_KEY",
+  apiKey: "AIzaSyDIBjZSQNNGDhxTu5eP8N8RCqWyMXsS19s",
   authDomain: "muizmarket-8b958.firebaseapp.com",
   projectId: "muizmarket-8b958",
-  appId: "YOUR_ACTUAL_APP_ID"
+  storageBucket: "muizmarket-8b958.firebasestorage.app",
+  messagingSenderId: "1058395270980",
+  appId: "1:1058395270980:web:82e28237bb48bad34fb111",
+  measurementId: "G-BEVJV36XCG"
 };

@@ -13,9 +13,9 @@ A. Create Firebase project (Android browser)
 1. Open https://console.firebase.google.com/ and create a project named MuiZMarket (or select an existing project).
 2. In Project settings, add a Web app (</> icon). Register it and copy its web config values.
 3. Authentication -> Sign-in method -> enable Email/Password.
-4. Authentication -> Settings / Authorized domains: ensure olalekan-oloto.github.io is authorized (Firebase may add it automatically; add it if missing). In Authentication -> Sign-in method, enable Email/Password.
+4. Authentication -> Settings / Authorized domains: ensure olalekan-oloto.github.io is authorized (Firebase may add it automatically; add it if missing).
 5. Firestore Database -> Create database. Start in production mode.
-6. In Firestore Rules, publish the contents of firestore.rules from this package. Do not leave test-mode rules enabled. Registration will fail when saving the profile if these rules are not published.
+6. In Firestore Rules, publish the contents of firestore.rules from this package. Do not leave test-mode rules enabled.
 7. Open firebase-config.js in GitHub and replace the four placeholder values with your Firebase web app's apiKey, authDomain, projectId and appId. Keep the quotation marks. These web config values identify the project; never paste a service-account JSON or private key into website files.
 8. Commit firebase-config.js and all new files to the main branch.
 9. Wait for GitHub Pages to deploy, then open https://olalekan-oloto.github.io/MuiZMarket/account.html (if the repository Pages URL includes /MuiZMarket/). If your current working site is the user-site URL https://olalekan-oloto.github.io/, open https://olalekan-oloto.github.io/account.html instead.
