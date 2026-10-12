@@ -304,5 +304,10 @@ setTimeout(() => {
       if (status) status.hidden = true;
       if (signOutButton) signOutButton.hidden = true;
     }
+    document.getElementById('dashboardSignOut')
+  ?.addEventListener('click', async () => {
+    await auth.signOut();
+    window.location.reload();
+  });
   });
 })();
