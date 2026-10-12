@@ -57,5 +57,17 @@
   <div class="modal-backdrop" id="authModal"><div class="modal"><button class="close-btn modal-close" data-close-modal aria-label="Close">×</button><div class="modal-brand"><span class="brand-mark">M</span><span class="gold-text">MuiZMarket</span></div><div class="eyebrow">WELCOME TO YOUR SPACE</div><h2 id="authTitle">Sign in</h2><p class="modal-subtitle" id="authSubtitle">Sign in to manage your orders and checkout.</p><div class="auth-tabs"><button class="auth-tab active" data-mode="login">Sign in</button><button class="auth-tab" data-mode="register">Create account</button></div><form id="authForm"><label id="nameLabel" class="hidden">Your name<input id="nameField" autocomplete="name" minlength="2" maxlength="80" placeholder="Your name"></label><label>Email address<input id="emailField" type="email" autocomplete="email" required placeholder="you@example.com"></label><label>Password<input id="passwordField" type="password" autocomplete="current-password" required minlength="10" placeholder="At least 10 characters"></label><button class="btn btn-gold btn-wide" id="authSubmit" type="submit">Sign in ↗</button><div id="authError" class="form-message" role="status"></div></form><form id="verifyForm" class="hidden"><p class="seller-message">Enter the 6-digit code sent to your Gmail inbox. It expires in 10 minutes.</p><label>Email address<input id="verifyEmailField" type="email" required autocomplete="email" placeholder="you@gmail.com"></label><label>Verification code<input id="verifyCodeField" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="123456"></label><button class="btn btn-gold btn-wide" type="submit">Verify email ↗</button><button class="btn btn-outline btn-wide" id="resendCode" type="button">Resend code</button><div id="verifyError" class="form-message" role="status"></div></form><p class="fine-print">Your account is for MuiZMarket only. Never reuse a password from another service.</p></div></div>
   <div class="toast" id="toast" role="status"></div>
   <script src="./app.js" defer></script>
-<script src="./social.js" defer></script></body>
+<script src="./social.js" defer></script>
+<section id="dashboardSection" hidden>
+  <h1>Welcome to MuiZMarket!</h1>
+  <p>You are signed in successfully.</p>
+
+  <h3>Your account</h3>
+  <p>Email: <span id="dashboardEmail">Loading...</span></p>
+  <p>Full name: <span id="dashboardName">Loading...</span></p>
+  <p>Username: <span id="dashboardUsername">Loading...</span></p>
+  <p>Country: <span id="dashboardCountry">Loading...</span></p>
+
+  <button id="dashboardSignOut" type="button">Sign out</button>
+</section></body>
 </html>
