@@ -1,5 +1,7 @@
 (() => {
-  const $ = (s) => document.querySelector(s);
+  'use strict';
+
+  const $ = (selector) => document.querySelector(selector);
   const registerForm = $('#registerForm');
   const loginForm = $('#loginForm');
   const resetForm = $('#resetForm');
@@ -8,14 +10,6 @@
   const message = $('#accountMessage');
   const tabs = [...document.querySelectorAll('[data-view]')];
 
-  let auth = null;
-  let db = null;
-  const config = window.MUIZMARKET_FIREBASE_CONFIG;
-  const configReady = config &&
-    config.apiKey && !config.apiKey.includes('PASTE_') &&
-    config.projectId && !config.projectId.includes('YOUR_') &&
-    config.appId && !config.appId.includes('YOUR_');
-
   const say = (text, type = '') => {
     if (!message) return;
     message.textContent = text;
@@ -23,7 +17,7 @@
   };
 
   const setBusy = (form, busy) => {
-    const button = form.querySelector('button[type="submit"]');
+    const button = form && form.querySelector('button[type="submit"]');
     if (!button) return;
     if (!button.dataset.original) button.dataset.original = button.textContent;
     button.disabled = busy;
@@ -50,47 +44,77 @@
   $('#backToLogin')?.addEventListener('click', () => view('login'));
 
   if (!registerForm || !loginForm || !resetForm || !message) {
-    console.error('MuiZMarket auth.js: required form elements are missing from the page.');
+    console.error('MuiZMarket auth.js: missing required HTML elements. Check the IDs for the forms and #accountMessage.');
     return;
   }
 
-  if (!configReady || !window.firebase) {
+  const config = window.MUIZMARKET_FIREBASE_CONFIG;
+  const configReady = !!(
+    config &&
+    typeof config.apiKey === 'string' && config.apiKey.trim() &&
+    typeof config.projectId === 'string' && config.projectId.trim() &&
+    typeof config.appId === 'string' && config.appId.trim() &&
+    !config.apiKey.includes('PASTE_') &&
+    !config.projectId.includes('YOUR_') &&
+    !config.appId.includes('YOUR_')
+  );
+
+  if (!window.firebase || !configReady) {
     const notice = $('#setupNotice');
     if (notice) notice.hidden = false;
-    say('Firebase setup is incomplete. Add your Firebase configuration and load the Firebase SDK before testing account creation.', 'error');
-    document.querySelectorAll('form button[type="submit"]').forEach((button) => {
-      button.disabled = true;
-    });
+    say(
+      !window.firebase
+        ? 'Firebase SDK did not load. Check that the Firebase app, auth, and Firestore SDK scripts load before auth.js.'
+        : 'Firebase configuration is missing or incomplete. Set window.MUIZMARKET_FIREBASE_CONFIG before auth.js.',
+      'error'
+    );
+    document.querySelectorAll('form button[type="submit"]').forEach((button) => { button.disabled = true; });
     return;
   }
 
+  let auth;
+  let db;
   try {
     if (!firebase.apps.length) firebase.initializeApp(config);
     auth = firebase.auth();
+    if (typeof firebase.firestore !== 'function') {
+      throw new Error('Firestore SDK is not loaded.');
+    }
     db = firebase.firestore();
     auth.useDeviceLanguage();
-  } catch (err) {
+  } catch (error) {
     const notice = $('#setupNotice');
     if (notice) notice.hidden = false;
-    say('Firebase setup error. Check your Firebase SDK and configuration.', 'error');
-    console.error(err);
+    say(`Firebase initialization failed: ${error.message || 'Check the SDK and configuration.'}`, 'error');
+    console.error('MuiZMarket Firebase initialization error:', error);
     return;
   }
 
-  function cleanError(err) {
-    const code = err && err.code;
-    const messages = {
+  function cleanError(error) {
+    const code = error && error.code ? String(error.code) : '';
+    const known = {
       'auth/email-already-in-use': 'An account already uses this email. Try signing in instead.',
       'auth/invalid-email': 'Enter a valid email address.',
       'auth/weak-password': 'Choose a stronger password with at least 12 characters.',
-      'auth/user-not-found': 'If that email has an account, you can request a password-reset email.',
+      'auth/user-not-found': 'No matching account was found. Check the email or request a password reset.',
       'auth/wrong-password': 'Email or password is incorrect.',
       'auth/invalid-credential': 'Email or password is incorrect.',
       'auth/too-many-requests': 'Too many attempts. Wait a while before trying again.',
-      'auth/network-request-failed': 'Network error. Check your connection and try again.',
-      'permission-denied': 'The database rejected this action. Check your Firestore security rules.'
+      'auth/network-request-failed': 'Firebase could not reach the server. Check your internet connection.',
+      'auth/operation-not-allowed': 'Email/Password sign-in is disabled in the Firebase project used by this website.',
+      'auth/unauthorized-domain': 'This website domain is not authorized in Firebase Authentication settings.',
+      'auth/invalid-api-key': 'The Firebase API key in the website configuration is invalid.',
+      'auth/app-not-authorized': 'This website app is not authorized for the Firebase project.',
+      'permission-denied': 'Firestore denied access. Check the security rules for the usernames and users collections.',
+      'unavailable': 'Firestore is temporarily unavailable. Check your connection and try again.',
+      'failed-precondition': 'Firestore needs setup or an index. Check the error details in the browser console.'
     };
-    return messages[code] || 'Could not complete this request. Check your connection and Firebase setup, then try again.';
+    if (code && known[code]) return `${known[code]} (${code})`;
+    // Include Firebase's error code so the real cause is not hidden by a generic message.
+    if (code) return `Request failed (${code}). ${error && error.message ? error.message : 'Check Firebase settings and browser console.'}`;
+    return error && error.message
+      ? `Request failed: ${error.message}`
+      : 'Request failed for an unknown reason. Check the browser console and Firebase setup.';
   }
 
   const normalUsername = (value) => value.trim().toLowerCase();
@@ -128,41 +152,68 @@
     }
 
     setBusy(registerForm, true);
-    let credential = null;
+    let user = null;
+    let profileSaved = false;
 
     try {
-      credential = await auth.createUserWithEmailAndPassword(email, password);
-      const user = credential.user;
-      const usernameRef = db.collection('usernames').doc(usernameKey);
-      const profileRef = db.collection('users').doc(user.uid);
+      const credential = await auth.createUserWithEmailAndPassword(email, password);
+      user = credential.user;
 
-      await user.sendEmailVerification({
-        url: window.location.origin + window.location.pathname,
-        handleCodeInApp: false
-      });
-
+      // Claim the username and create the profile. Firestore security rules must allow
+      // the signed-in user to create these documents safely.
       await db.runTransaction(async (transaction) => {
+        const usernameRef = db.collection('usernames').doc(usernameKey);
+        const profileRef = db.collection('users').doc(user.uid);
         const existing = await transaction.get(usernameRef);
-        if (existing.exists) throw new Error('USERNAME_TAKEN');
+        if (existing.exists) {
+          const duplicate = new Error('That username is already taken. Choose another one.');
+          duplicate.code = 'app/username-taken';
+          throw duplicate;
+        }
         transaction.set(usernameRef, { uid: user.uid });
         transaction.set(profileRef, {
-          uid: user.uid, fullName, username, usernameKey, email, country, phone, dob,
+          uid: user.uid,
+          fullName,
+          username,
+          usernameKey,
+          email,
+          country,
+          phone,
+          dob,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       });
+      profileSaved = true;
 
-      registerForm.reset();
-      view('login');
-      say('Account created. Check your email for a verification link before signing in.', 'success');
-    } catch (err) {
-      if (credential && credential.user) {
-        try { await credential.user.delete(); } catch (_) {}
+      // Send verification after the profile transaction succeeds. If email delivery
+      // fails, keep the account so the user can sign in and request verification again.
+      try {
+        await user.sendEmailVerification({
+          url: window.location.origin + window.location.pathname,
+          handleCodeInApp: false
+        });
+        registerForm.reset();
+        view('login');
+        say('Account created. Check your email for a verification link before signing in.', 'success');
+      } catch (emailError) {
+        console.error('MuiZMarket verification email error:', emailError);
+        say(`Your account was created, but the verification email could not be sent. ${cleanError(emailError)} You can sign in after verification; ask the site administrator to check Firebase email settings.`, 'error');
       }
-      say(err.message === 'USERNAME_TAKEN'
-        ? 'That username is already taken. Choose another one.'
-        : cleanError(err), 'error');
-      console.error('MuiZMarket registration error:', err);
+    } catch (error) {
+      if (error && error.code === 'app/username-taken') {
+        say(error.message, 'error');
+      } else {
+        say(cleanError(error), 'error');
+      }
+      console.error('MuiZMarket registration error:', error);
+
+      // Do not silently delete the Firebase user here. If Firestore failed, deleting
+      // can also fail and leave an unclear account state. The visible error now tells
+      // the administrator which Firebase permission/configuration needs fixing.
+      if (user && !profileSaved) {
+        console.warn('A Firebase Auth account may have been created, but its Firestore profile was not saved. Check Firebase Console before retrying with the same email.');
+      }
     } finally {
       setBusy(registerForm, false);
     }
@@ -172,6 +223,7 @@
     event.preventDefault();
     say('');
     if (!loginForm.reportValidity()) return;
+
     const data = new FormData(loginForm);
     const email = String(data.get('email') || '').trim().toLowerCase();
     const password = String(data.get('password') || '');
@@ -181,7 +233,7 @@
       const result = await auth.signInWithEmailAndPassword(email, password);
       if (!result.user.emailVerified) {
         await auth.signOut();
-        say('Verify your email using the link we sent before signing in. Check your inbox and spam folder.', 'error');
+        say('Please verify your email using the link sent to you before signing in. Check your inbox and spam folder.', 'error');
         return;
       }
       say('Signed in successfully. Your account is ready.', 'success');
@@ -193,9 +245,9 @@
       }
       if (signOutButton) signOutButton.hidden = false;
       loginForm.reset();
-    } catch (err) {
-      say(cleanError(err), 'error');
-      console.error('MuiZMarket sign-in error:', err);
+    } catch (error) {
+      say(cleanError(error), 'error');
+      console.error('MuiZMarket sign-in error:', error);
     } finally {
       setBusy(loginForm, false);
     }
@@ -205,16 +257,16 @@
     event.preventDefault();
     say('');
     if (!resetForm.reportValidity()) return;
+
     const email = String(new FormData(resetForm).get('email') || '').trim().toLowerCase();
     setBusy(resetForm, true);
-
     try {
       await auth.sendPasswordResetEmail(email);
       say('If an account exists for that address, a password-reset email has been sent. Check your inbox and spam folder.', 'success');
       resetForm.reset();
-    } catch (err) {
-      say(cleanError(err), 'error');
-      console.error('MuiZMarket password reset error:', err);
+    } catch (error) {
+      say(cleanError(error), 'error');
+      console.error('MuiZMarket password reset error:', error);
     } finally {
       setBusy(resetForm, false);
     }
@@ -229,8 +281,9 @@
       if (signOutButton) signOutButton.hidden = true;
       view('login');
       say('You have signed out.', 'success');
-    } catch (err) {
-      say(cleanError(err), 'error');
+    } catch (error) {
+      say(cleanError(error), 'error');
+      console.error('MuiZMarket sign-out error:', error);
     }
   });
 
