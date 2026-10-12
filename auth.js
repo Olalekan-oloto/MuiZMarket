@@ -236,7 +236,11 @@
         say('Please verify your email using the link sent to you before signing in. Check your inbox and spam folder.', 'error');
         return;
       }
-      say('Signed in successfully. Your account is ready.', 'success');
+      say('Signed in successfully. Opening MuiZMarket...', 'success');
+
+setTimeout(() => {
+  window.location.href = 'menu.html';
+}, 1000);
       const status = $('#accountStatus');
       const signOutButton = $('#signOutButton');
       if (status) {
