@@ -1,43 +1,35 @@
-MUIZMARKET REAL ACCOUNT SETUP (GitHub Pages + Firebase)
-=====================================================
+MuiZMarket authentication setup
+================================
 
-What this adds
-- Create Account with full name, username, email, password, country, phone number with country code, date of birth.
-- Email/password sign-in, email verification, forgot-password email, sign-out.
-- Username uniqueness reservation and private user profile document in Firestore.
-- Firestore security rules in firestore.rules.
+Files
+-----
+- auth.js: account registration, sign-in, password reset, email verification and sign-out logic.
 
-Important: accounts will NOT work until you configure Firebase. Do not upload real user data while setup is incomplete.
+Important
+---------
+auth.js alone cannot create accounts until the website's HTML and Firebase project are configured.
+Do not put Firebase Admin/service-account credentials or private keys in browser code.
 
-A. Create Firebase project (Android browser)
-1. Open https://console.firebase.google.com/ and create a project named MuiZMarket (or select an existing project).
-2. In Project settings, add a Web app (</> icon). Register it and copy its web config values.
-3. Authentication -> Sign-in method -> enable Email/Password.
-4. Authentication -> Settings / Authorized domains: ensure olalekan-oloto.github.io is authorized (Firebase may add it automatically; add it if missing).
-5. Firestore Database -> Create database. Start in production mode.
-6. In Firestore Rules, publish the contents of firestore.rules from this package. Do not leave test-mode rules enabled.
-7. Open firebase-config.js in GitHub and replace the four placeholder values with your Firebase web app's apiKey, authDomain, projectId and appId. Keep the quotation marks. These web config values identify the project; never paste a service-account JSON or private key into website files.
-8. Commit firebase-config.js and all new files to the main branch.
-9. Wait for GitHub Pages to deploy, then open https://olalekan-oloto.github.io/MuiZMarket/account.html (if the repository Pages URL includes /MuiZMarket/). If your current working site is the user-site URL https://olalekan-oloto.github.io/, open https://olalekan-oloto.github.io/account.html instead.
+1. In Firebase Console, create/select your project.
+2. In Authentication > Sign-in method, enable Email/Password.
+3. In Authentication > Settings / Authorized domains, add the domain where the website is hosted.
+4. Register a Web app in Project settings and copy its Firebase web config.
+5. Before loading auth.js, define window.MUIZMARKET_FIREBASE_CONFIG with that web config.
+6. Load the Firebase v8-compatible app, auth and firestore SDK scripts before auth.js. This file uses the
+   namespaced SDK API: firebase.initializeApp(), firebase.auth() and firebase.firestore().
+7. Ensure the HTML has these IDs:
+   registerForm, loginForm, resetForm, formTitle, formSubtitle, accountMessage,
+   setupNotice, forgotLink, backToLogin, accountStatus, signOutButton.
+   The forms must have the field names used by FormData:
+   register: fullName, username, email, password, country, phone, dob
+   login: email, password
+   reset: email
+   Add view-switch controls with data-view="register", "login", and "reset".
+8. Create and carefully test Firestore security rules for the usernames and users collections.
+   The code expects usernames/{lowercaseUsername} and users/{uid}. Do not deploy permissive rules
+   such as allow read, write: if true. The client-side transaction is not a substitute for secure rules.
+9. Host the website over HTTPS and test registration, verification email, sign-in, password reset,
+   and sign-out.
 
-B. Upload files from Android
-1. Extract the ZIP on your phone.
-2. In GitHub repository -> Add file -> Upload files, upload account.html, account.css, auth.js, firebase-config.js, firestore.rules, SETUP-FIREBASE.txt, plus the updated app.js.
-3. If GitHub's mobile file picker doesn't keep the files in the repository root, open each file path in GitHub and use the pencil/Edit button to add or replace it. These files must sit beside index.html and styles.css.
-4. Tap Commit changes to main.
-5. Replace firebase-config.js placeholders with your actual Firebase web config only after creating the project.
-
-C. Security notes
-- Firebase Authentication handles password storage; this project never writes raw passwords to Firestore.
-- Email verification is required before the app treats a user as signed in.
-- Firestore rules restrict each profile to its owner. Username lookup docs expose only the chosen username key and UID; do not store private data in them.
-- Date of birth and phone number are sensitive personal information. Collect them only if needed, restrict access, and publish a privacy notice. The rules permit only the signed-in owner to read their profile.
-- Client-side validation improves the experience but is not a substitute for server-side validation and abuse protection. Consider App Check and rate limiting for a production marketplace.
-- This creates authentication and a basic profile only. It does NOT yet make orders, payments, seller payouts, or checkout production-ready.
-
-D. Testing
-1. Open account.html, create a test account using an email you control.
-2. Check that inbox/spam folder for Firebase verification email and verify it.
-3. Return to account.html and sign in.
-4. Test Forgot password with the same email.
-5. Never test with someone else's email or reuse a personal password.
+Phone numbers must include a country code, and passwords must be at least 12 characters.
+The script intentionally blocks account actions if the Firebase configuration is missing.
