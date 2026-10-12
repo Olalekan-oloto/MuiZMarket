@@ -8,3 +8,26 @@
 
 /* Digital-first platform category shortcuts */
 .platform-categories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 18px}.platform-category{display:flex;align-items:center;gap:12px;text-align:left;min-width:0;padding:14px;background:linear-gradient(145deg,#1a1a17,#151513);border:1px solid #302e27;border-radius:9px;color:var(--text)}.platform-category:hover,.platform-category:focus-visible{border-color:var(--gold);background:#211d15}.platform-mark{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:1px solid #534426;background:#302819;border-radius:8px;color:var(--gold2);font-weight:800;font-size:20px}.platform-category b,.platform-category small{display:block}.platform-category b{font-size:11px}.platform-category small{font-size:9px;color:#969184;margin-top:3px}.digital-policy-note{font-size:10px;line-height:1.7;color:#9d9789;background:#171612;border-left:2px solid var(--gold);padding:10px 13px;margin:0 0 22px}.seller-panel select{display:block;width:100%;margin-top:7px;background:#10100f;border:1px solid #39352b;border-radius:5px;padding:12px;color:#f2eee5;outline:none;font-size:11px}.seller-panel select:focus{border-color:#b99747}@media(max-width:760px){.platform-categories{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:420px){.platform-category{padding:10px;gap:8px}.platform-mark{flex-basis:32px;width:32px;height:32px;font-size:17px}.platform-category b{font-size:10px}.platform-category small{font-size:8px}}
+
+
+/* Mobile navigation repair: keep links in an anchored dropdown below the header. */
+@media (max-width: 720px) {
+  .topbar { position: sticky; top: 0; z-index: 100; }
+  .desktop-nav {
+    display: none;
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    z-index: 101;
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 5%;
+    background: #171715;
+    border-bottom: 1px solid var(--gold);
+    box-shadow: 0 12px 24px #0008;
+  }
+  .desktop-nav.mobile-open { display: flex !important; }
+  .desktop-nav a { display: block; padding: 13px 8px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .desktop-nav a:last-child { border-bottom: 0; }
+  .topbar .brand { flex: 1; min-width: 0; }
+  .top-actions { flex-shrink: 0; }
+}
