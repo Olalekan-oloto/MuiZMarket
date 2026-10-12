@@ -23,7 +23,11 @@
     'auth/invalid-credential':'Email or password is incorrect.',
     'auth/too-many-requests':'Too many attempts. Wait a while before trying again.',
     'auth/network-request-failed':'Network error. Check your connection and try again.',
-    'permission-denied':'The database rejected this action. Check the Firestore security rules in SETUP-FIREBASE.txt.'
+    'permission-denied':'Firebase Firestore blocked the profile save. Publish firestore.rules in Firebase Console → Firestore Database → Rules, then try again.',
+    'auth/operation-not-allowed':'Email/password sign-up is disabled. Enable Email/Password in Firebase Console → Authentication → Sign-in method.',
+    'auth/unauthorized-domain':'This website domain is not authorized. Add olalekan-oloto.github.io under Firebase Authentication → Settings → Authorized domains.',
+    'auth/invalid-api-key':'The Firebase API key in firebase-config.js is invalid. Copy the Web app config from Firebase Project settings.',
+    'unavailable':'Firebase is temporarily unavailable. Check your internet connection and try again.'
   };return messages[code]||'Could not complete this request. Check your connection and Firebase setup, then try again.';}
   const normalUsername=v=>v.trim().toLowerCase();
   registerForm.addEventListener('submit',async e=>{
@@ -36,22 +40,28 @@
     setBusy(registerForm,true);
     let credential=null, reserved=false;
     try{
-      // Reserve username and write the profile in one transaction; Firestore rules must be installed first.
+      // Create the Firebase account, then reserve the username and save its profile.
+      // Firestore rules in firestore.rules must be published before registration can complete.
       credential=await auth.createUserWithEmailAndPassword(email,password);
       const user=credential.user, usernameRef=db.collection('usernames').doc(usernameKey), profileRef=db.collection('users').doc(user.uid);
-      // Send verification before profile transaction so a mail-service failure cannot leave a saved profile behind.
-      await user.sendEmailVerification({url:window.location.origin+window.location.pathname,handleCodeInApp:false});
       await db.runTransaction(async tx=>{const existing=await tx.get(usernameRef);if(existing.exists)throw new Error('USERNAME_TAKEN');tx.set(usernameRef,{uid:user.uid});tx.set(profileRef,{uid:user.uid,fullName,username,usernameKey,email,country,phone,dob,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});});
-      registerForm.reset(); say('Account created. Check your email for a verification link before using account features. You can now sign in after verifying your address.','success'); view('login');
+      registerForm.reset();
+      view('login');
+      try {
+        await user.sendEmailVerification({url:window.location.origin+window.location.pathname,handleCodeInApp:false});
+        say('Account created. Check your inbox and spam folder for the verification link, then sign in.','success');
+      } catch(mailError) {
+        say('Your account was created, but Firebase could not send the verification email. Check Firebase Authentication email templates and authorized domains. Details: '+(mailError.code||mailError.message||'email service error'),'error');
+      }
     }catch(err){
       if(credential && credential.user){
-        // If profile creation failed, remove the newly-created unverified auth account to avoid an orphan account.
+        // Clean up a newly-created account if saving its required profile failed.
         try{await credential.user.delete();}catch(_){ }
       }
       say(err.message==='USERNAME_TAKEN'?'That username is already taken. Choose another one.':cleanError(err),'error');
-    }finally{setBusy(registerForm,false);}
+    }finally{setBusy(registerForm,false);} 
   });
-  loginForm.addEventListener('submit',async e=>{e.preventDefault();say('');if(!loginForm.reportValidity())return;const f=new FormData(loginForm),email=String(f.get('email')).trim().toLowerCase(),password=String(f.get('password'));setBusy(loginForm,true);try{const result=await auth.signInWithEmailAndPassword(email,password);if(!result.user.emailVerified){await auth.signOut();say('Please verify your email using the link we sent before signing in. Check your inbox and spam folder.','error');return;}say('Signed in successfully. Opening your buyer dashboard…','success');$('#accountStatus').hidden=false;$('#accountStatus').textContent='Signed in as '+result.user.email;$('#signOutButton').hidden=false;loginForm.reset();window.setTimeout(()=>{window.location.href='./buyer.html';},700);}catch(err){say(cleanError(err),'error');}finally{setBusy(loginForm,false);}});
+  loginForm.addEventListener('submit',async e=>{e.preventDefault();say('');if(!loginForm.reportValidity())return;const f=new FormData(loginForm),email=String(f.get('email')).trim().toLowerCase(),password=String(f.get('password'));setBusy(loginForm,true);try{const result=await auth.signInWithEmailAndPassword(email,password);if(!result.user.emailVerified){await auth.signOut();say('Please verify your email using the link we sent before signing in. Check your inbox and spam folder.','error');return;}say('Signed in successfully. Your account is ready.','success');$('#accountStatus').hidden=false;$('#accountStatus').textContent='Signed in as '+result.user.email;$('#signOutButton').hidden=false;loginForm.reset();}catch(err){say(cleanError(err),'error');}finally{setBusy(loginForm,false);}});
   resetForm.addEventListener('submit',async e=>{e.preventDefault();say('');if(!resetForm.reportValidity())return;const email=String(new FormData(resetForm).get('email')).trim().toLowerCase();setBusy(resetForm,true);try{await auth.sendPasswordResetEmail(email);say('If an account exists for that address, a password-reset email has been sent. Check your inbox and spam folder.','success');resetForm.reset();}catch(err){say(cleanError(err),'error');}finally{setBusy(resetForm,false);}});
   $('#signOutButton').addEventListener('click',async()=>{try{await auth.signOut();$('#accountStatus').hidden=true;$('#signOutButton').hidden=true;say('You have signed out.','success');view('login');}catch(err){say(cleanError(err),'error');}});
   auth.onAuthStateChanged(user=>{if(user && user.emailVerified){$('#accountStatus').hidden=false;$('#accountStatus').textContent='Signed in as '+user.email;$('#signOutButton').hidden=false;}else{$('#accountStatus').hidden=true;$('#signOutButton').hidden=true;}});
