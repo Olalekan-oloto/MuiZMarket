@@ -219,15 +219,41 @@
     }
   });
 
-  loginForm.addEventListener('submit', async (event) => {
+    loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     say('');
+
     if (!loginForm.reportValidity()) return;
 
     const data = new FormData(loginForm);
     const email = String(data.get('email') || '').trim().toLowerCase();
     const password = String(data.get('password') || '');
+
     setBusy(loginForm, true);
+
+    try {
+      const result = await auth.signInWithEmailAndPassword(email, password);
+
+      if (!result.user.emailVerified) {
+        await auth.signOut();
+        say(
+          'Please verify your email before signing in.',
+          'error'
+        );
+        return;
+      }
+
+      say('Login successful! Opening your dashboard...', 'success');
+
+      window.location.replace('./index.html?dashboard=1');
+
+    } catch (error) {
+      say(cleanError(error), 'error');
+      console.error('MuiZMarket sign-in error:', error);
+    } finally {
+      setBusy(loginForm, false);
+    }
+  });
 
     try {
       const result = await auth.signInWithEmailAndPassword(email, password);
