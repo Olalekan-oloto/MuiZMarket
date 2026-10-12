@@ -1,8 +1,10 @@
-/* SETUP REQUIRED: Replace these placeholders with your Firebase project's Web app config.
-   This config is public by design. Never put service-account keys or private API secrets here. */
-window.MUIZMARKET_FIREBASE_CONFIG = {
-  apiKey: "PASTE_FIREBASE_WEB_API_KEY_HERE",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_FIREBASE_WEB_APP_ID"
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZ2rpwpyf781XomPj_gUax56tje4ngCHU",
+  authDomain: "muizmarket-6da7d.firebaseapp.com",
+  projectId: "muizmarket-6da7d",
+  storageBucket: "muizmarket-6da7d.firebasestorage.app",
+  messagingSenderId: "405698989160",
+  appId: "1:405698989160:web:2b26a132330bb3800c3fdd",
+  measurementId: "G-KF97RZ1TS7"
 };
