@@ -1,5 +1,4 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+window.MUIZMARKET_FIREBASE_CONFIG = {
   apiKey: "AIzaSyAZ2rpwpyf781XomPj_gUax56tje4ngCHU",
   authDomain: "muizmarket-6da7d.firebaseapp.com",
   projectId: "muizmarket-6da7d",
