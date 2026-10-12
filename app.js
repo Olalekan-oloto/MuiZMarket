@@ -30,7 +30,6 @@
   }
   function openCart(open){$('#cartDrawer').classList.toggle('open',open);$('#overlay').classList.toggle('open',open);$('#cartDrawer').setAttribute('aria-hidden',String(!open));}
   $('#year').textContent=new Date().getFullYear();
-  const menuButton=$('#menuToggle'); if(menuButton) menuButton.setAttribute('aria-expanded','false');
   $('#searchInput').addEventListener('input',e=>{query=e.target.value;render()});
   document.addEventListener('click',e=>{
     const add=e.target.closest('[data-add]'); if(add){const id=Number(add.dataset.add),line=cart.find(x=>x.id===id);if(line)line.quantity=Math.min(10,line.quantity+1);else cart.push({id,quantity:1});renderCart();return;}
@@ -39,12 +38,10 @@
     const qty=e.target.closest('[data-qty]');if(qty){const line=cart.find(x=>x.id===Number(qty.dataset.qty));if(line){line.quantity+=Number(qty.dataset.delta);if(line.quantity<1)cart=cart.filter(x=>x!==line);renderCart();}return;}
     if(e.target.closest('#cartOpen'))openCart(true);
     if(e.target.closest('#cartClose')||e.target.id==='overlay')openCart(false);
-    if(e.target.closest('#authButton')||e.target.closest('#heroAccount')||e.target.closest('#ctaAccount'))alert('This GitHub Pages preview is for design testing. Sign-in and account features need the Node.js backend to be deployed separately.');
+    if(e.target.closest('#authButton')||e.target.closest('#heroAccount')||e.target.closest('#ctaAccount')){window.location.href='./account.html';}
     if(e.target.closest('#checkoutButton'))alert('Checkout is disabled in this static preview. A secure backend and payment-provider configuration are required.');
     if(e.target.closest('#applySeller')||e.target.closest('#refreshSeller')||e.target.closest('#refreshOrders'))alert('Seller, account and order features require the Node.js backend. This preview lets you test the visual design and product browsing.');
-    const menuButton=e.target.closest('#menuToggle');
-    if(menuButton){const nav=document.querySelector('.desktop-nav');const isOpen=nav.classList.toggle('mobile-open');menuButton.setAttribute('aria-expanded',String(isOpen));menuButton.setAttribute('aria-label',isOpen?'Close menu':'Open menu');}
-    if(e.target.closest('.desktop-nav a')){const nav=document.querySelector('.desktop-nav');nav.classList.remove('mobile-open');const button=$('#menuToggle');if(button){button.setAttribute('aria-expanded','false');button.setAttribute('aria-label','Open menu');}}
+    if(e.target.closest('#menuToggle')){const nav=document.querySelector('.desktop-nav');nav.style.display=nav.style.display==='flex'?'':'flex';nav.style.flexDirection='column';}
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape')openCart(false)});
   $('#productGrid').innerHTML=''; render();

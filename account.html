@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#101010">
+<title>Account | MuiZMarket</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./account.css">
+</head><body class="account-page"><header class="account-header"><a class="brand" href="./index.html"><span class="brand-mark">M</span><span>MuiZ<span class="gold">Market</span><small>THE DIGITAL MARKETPLACE</small></span></a><a class="btn btn-outline" href="./index.html">Back to marketplace</a></header>
+<main class="account-wrap"><section class="account-card"><div class="modal-brand"><span class="brand-mark">M</span><span class="gold-text">MuiZMarket</span></div><div class="eyebrow">YOUR ACCOUNT, YOUR WAY</div><h1 id="formTitle">Create your account</h1><p id="formSubtitle" class="account-muted">Join the marketplace to manage your digital purchases.</p>
+<div class="auth-tabs"><button type="button" class="auth-tab active" data-view="register">Create account</button><button type="button" class="auth-tab" data-view="login">Sign in</button></div>
+<div id="setupNotice" class="form-message" role="status" hidden>Authentication is not configured yet. Follow SETUP-FIREBASE.txt, then add your Firebase web config to firebase-config.js.</div>
+<form id="registerForm" novalidate>
+<label>Full name<input name="fullName" autocomplete="name" required minlength="2" maxlength="100" placeholder="Your full name"></label>
+<label>Username<input name="username" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="Choose a username"><small>3–24 letters, numbers, or underscores.</small></label>
+<label>Email address<input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></label>
+<label>Password<input name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="At least 12 characters"><small>Use a unique password you do not use elsewhere.</small></label>
+<label>Country<select name="country" autocomplete="country-name" required><option value="">Choose your country</option><option>Nigeria</option><option>Canada</option><option>United States</option><option>United Kingdom</option><option>Ghana</option><option>South Africa</option><option>Other</option></select></label>
+<label>Phone number with country code<input name="phone" type="tel" autocomplete="tel" required minlength="7" maxlength="25" placeholder="+234 800 000 0000"></label>
+<label>Date of birth<input name="dob" type="date" autocomplete="bday" required></label>
+<p class="privacy-note">Your profile details are stored in your MuiZMarket account. Never enter payment-card details here. Your date of birth and phone number should only be collected if you agree they are needed for this service.</p>
+<button class="btn btn-gold btn-wide" type="submit" id="registerSubmit">Create account ↗</button><p class="account-muted small">We'll send a verification email before the account is considered verified.</p>
+</form>
+<form id="loginForm" hidden novalidate><label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label><label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Your password"></label><button class="btn btn-gold btn-wide" type="submit" id="loginSubmit">Sign in ↗</button><button class="text-button" type="button" id="forgotLink">Forgot password?</button></form>
+<form id="resetForm" hidden novalidate><p class="account-muted">Enter the email address for your account. If it exists, Firebase will send a password-reset email.</p><label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label><button class="btn btn-gold btn-wide" type="submit" id="resetSubmit">Send reset email ↗</button><button class="text-button" type="button" id="backToLogin">Back to sign in</button></form>
+<div id="accountMessage" class="form-message" role="status" aria-live="polite"></div><div id="accountStatus" class="account-status" hidden></div><button id="signOutButton" class="btn btn-outline btn-wide" type="button" hidden>Sign out</button><p class="account-footer"><a href="./index.html">MuiZMarket home</a> · Never share your password or verification links.</p></section></main>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script><script src="./firebase-config.js"></script><script src="./auth.js" defer></script>
+</body></html>
