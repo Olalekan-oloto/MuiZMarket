@@ -51,39 +51,36 @@
       say(err.message==='USERNAME_TAKEN'?'That username is already taken. Choose another one.':cleanError(err),'error');
     }finally{setBusy(registerForm,false);}
   });
-  loginForm.addEventListener('submit',async e=>{
+  loginForm.addEventListener('submit', async e => {
     e.preventDefault();
     say('');
-    if(!loginForm.reportValidity())return;
-    const f=new FormData(loginForm),
-      email=String(f.get('email')).trim().toLowerCase(),
-      password=String(f.get('password'));
-    setBusy(loginForm,true);
-    try{
-      const result=await auth.signInWithEmailAndPassword(email,password);
-      if(!result.user.emailVerified){
+    if (!loginForm.reportValidity()) return;
+    const f = new FormData(loginForm);
+    const email = String(f.get('email')).trim().toLowerCase();
+    const password = String(f.get('password'));
+    setBusy(loginForm, true);
+    try {
+      const result = await auth.signInWithEmailAndPassword(email, password);
+      // Refresh the user so a verification completed in another tab is recognized.
+      await result.user.reload();
+      const user = auth.currentUser || result.user;
+      if (!user.emailVerified) {
         await auth.signOut();
-        say('Please verify your email using the link we sent before signing in. Check your inbox and spam folder.','error');
+        say('Please verify your email using the link we sent before signing in. Check your inbox and spam folder.', 'error');
         return;
       }
-
-      // Use a saved profile role when available; new accounts default to the buyer dashboard.
-      // Relative URLs work on both GitHub Pages project sites and user sites.
-      let destination='./buyer.html';
-      try{
-        const profile=await db.collection('users').doc(result.user.uid).get();
-        const role=profile.exists ? String(profile.data().role||'').toLowerCase() : '';
-        if(role==='seller') destination='./seller.html';
-      }catch(profileError){
-        // Authentication succeeded; if profile lookup is unavailable, continue to the buyer page.
-        console.warn('Could not load account role; opening buyer dashboard.',profileError);
-      }
+      say('Signed in successfully. Opening your buyer dashboard…', 'success');
+      $('#accountStatus').hidden = false;
+      $('#accountStatus').textContent = 'Signed in as ' + user.email;
+      $('#signOutButton').hidden = false;
       loginForm.reset();
-      window.location.assign(destination);
-    }catch(err){
-      say(cleanError(err),'error');
-    }finally{
-      setBusy(loginForm,false);
+      // Firebase accounts created by this site are buyer accounts by default.
+      // Replace the URL so Back does not return to the submitted login form.
+      window.location.replace(new URL('./buyer.html', window.location.href).href);
+    } catch (err) {
+      say(cleanError(err), 'error');
+    } finally {
+      setBusy(loginForm, false);
     }
   });
   resetForm.addEventListener('submit',async e=>{e.preventDefault();say('');if(!resetForm.reportValidity())return;const email=String(new FormData(resetForm).get('email')).trim().toLowerCase();setBusy(resetForm,true);try{await auth.sendPasswordResetEmail(email);say('If an account exists for that address, a password-reset email has been sent. Check your inbox and spam folder.','success');resetForm.reset();}catch(err){say(cleanError(err),'error');}finally{setBusy(resetForm,false);}});
