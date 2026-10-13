@@ -29,7 +29,7 @@
     'auth/network-request-failed':'Network error. Check your connection and try again.',
     'auth/operation-not-allowed':'Email/password sign-in is disabled for this Firebase project. Enable the Email/Password provider in Firebase Authentication.',
     'auth/invalid-api-key':'Firebase API key is invalid. Check the existing web app configuration.',
-    'permission-denied':'Firestore denied a database operation during registration or sign-in. Your current rules appear compatible with the profile fields, so verify that the website is using the intended Firebase project and that the published rules match SETUP-FIREBASE.txt. No security rules were changed.'
+    'permission-denied':'Firestore denied the operation at one step of registration. Open the browser console and check the “MuiZMarket registration failed” entry for the stage and error code. Do not change security rules until that exact step is identified.'
   };return messages[code]||(code ? 'Could not complete this request ('+code+'). Check the browser console for details, then verify your Firebase setup.' : 'Could not complete this request. Check your connection and Firebase setup, then try again.');}
   const normalUsername=v=>v.trim().toLowerCase();
   const apiBase=()=>String(window.MUIZMARKET_API_URL||'').trim().replace(/\/$/,'');
@@ -50,12 +50,14 @@
     if(new Date(dob+'T00:00:00')>=new Date()){say('Enter a valid date of birth in the past.','error');return;}
     if(password.length<12){say('Use a password with at least 12 characters.','error');return;}
     setBusy(registerForm,true);
-    let credential=null, reserved=false;
+    let credential=null, registrationStage='creating Firebase Authentication account';
     try{
       credential=await auth.createUserWithEmailAndPassword(email,password);
       const user=credential.user, usernameRef=db.collection('usernames').doc(usernameKey), profileRef=db.collection('users').doc(user.uid);
       // Keep the profile fields compatible with the existing Firestore rules.
-      await db.runTransaction(async tx=>{const existing=await tx.get(usernameRef);if(existing.exists)throw new Error('USERNAME_TAKEN');tx.set(usernameRef,{uid:user.uid});tx.set(profileRef,{uid:user.uid,fullName,username,usernameKey,email,country,phone,dob,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});});
+      registrationStage='checking username reservation permission';
+      await db.runTransaction(async tx=>{const existing=await tx.get(usernameRef);if(existing.exists)throw new Error('USERNAME_TAKEN');registrationStage='writing username reservation and user profile';tx.set(usernameRef,{uid:user.uid});tx.set(profileRef,{uid:user.uid,fullName,username,usernameKey,email,country,phone,dob,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});});
+      registrationStage='assigning account role';
       let roleSaved = role === 'buyer';
       if(apiBase()) {
         try { await apiRequest('/api/account/role',{method:'POST',body:JSON.stringify({role})}); roleSaved=true; }
@@ -70,6 +72,7 @@
       view('login'); say('Account created successfully.'+mailNote+roleNote,'success');
     }catch(err){
       console.error('MuiZMarket registration failed:', {
+        stage: registrationStage,
         code: err && err.code ? err.code : null,
         message: err && err.message ? err.message : String(err)
       });
