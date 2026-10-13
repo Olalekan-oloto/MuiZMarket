@@ -10,3 +10,6 @@ This folder is prepared for GitHub Pages to show the styled marketplace UI. It i
 
 ## Important limits
 This is a static design/testing preview. GitHub Pages cannot run the Node.js server, database, sign-in, email verification, seller administration, or payment processing. Those features need the backend deployed to a Node.js host and the frontend configured to call it. The product cards in this preview are demonstration data, not real listings, and checkout is deliberately disabled.
+
+
+BACKEND: See BACKEND-SETUP.md and server.js. GitHub Pages cannot execute server.js; deploy it separately. Never commit Firebase service-account credentials.

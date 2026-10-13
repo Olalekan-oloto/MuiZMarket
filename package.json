@@ -1,25 +1,18 @@
 {
-  "name": "muizmarket",
-  "version": "1.1.0",
+  "name": "muizmarket-api",
+  "version": "1.0.0",
   "private": true,
-  "description": "MuiZMarket premium digital marketplace starter",
+  "description": "MuiZMarket marketplace API",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
-  },
   "engines": {
-    "node": "22.x"
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^12.2.0",
-    "connect-sqlite3": "^0.9.16",
-    "dotenv": "^16.4.7",
+    "cors": "^2.8.5",
     "express": "^4.21.2",
-    "express-session": "^1.18.1",
-    "helmet": "^8.0.0",
-    "stripe": "^17.5.0",
-    "nodemailer": "^6.9.16"
+    "firebase-admin": "^13.0.2"
   }
 }
