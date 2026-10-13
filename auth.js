@@ -69,14 +69,37 @@
         say('Please verify your email using the link we sent before signing in. Check your inbox and spam folder.', 'error');
         return;
       }
-      say('Signed in successfully. Opening your buyer dashboard…', 'success');
+      // Read the existing user profile to determine which dashboard to open.
+      // Accounts without a recognized role safely default to the buyer dashboard.
+      let role = 'buyer';
+      try {
+        const profile = await db.collection('users').doc(user.uid).get();
+        if (profile.exists) {
+          const data = profile.data() || {};
+          const candidates = [data.role, data.accountRole, data.accountType, data.userType, data.userRole];
+          const normalizedRole = candidates
+            .find(value => typeof value === 'string' && value.trim())
+            ?.trim()
+            .toLowerCase();
+          if (normalizedRole === 'seller' || normalizedRole === 'vendor') {
+            role = 'seller';
+          } else if (normalizedRole === 'buyer' || normalizedRole === 'customer') {
+            role = 'buyer';
+          }
+        }
+      } catch (profileError) {
+        // Profile lookup must not block a valid sign-in; use the safe buyer default.
+        console.warn('MuiZMarket: could not read the user role; opening buyer dashboard.', profileError);
+      }
+
+      const dashboard = role === 'seller' ? './seller.html' : './buyer.html';
+      say(`Signed in successfully. Opening your ${role} dashboard…`, 'success');
       $('#accountStatus').hidden = false;
       $('#accountStatus').textContent = 'Signed in as ' + user.email;
       $('#signOutButton').hidden = false;
       loginForm.reset();
-      // Firebase accounts created by this site are buyer accounts by default.
       // Replace the URL so Back does not return to the submitted login form.
-      window.location.replace(new URL('./buyer.html', window.location.href).href);
+      window.location.replace(new URL(dashboard, window.location.href).href);
     } catch (err) {
       say(cleanError(err), 'error');
     } finally {

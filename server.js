@@ -4,16 +4,6 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const app = express();
-app.get("/", (req, res) => {
-  res.json({
-    message: "Welcome to MuiZMarket API",
-    status: "success",
-    endpoints: [
-      "/health",
-      "/api/products"
-    ]
-  });
-});
 app.use(express.json({limit:'1mb'}));
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(x=>x.trim()).filter(Boolean);
 app.use(cors({origin(origin, cb){ if(!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) return cb(null,true); return cb(new Error('Origin not allowed')); }}));
@@ -21,27 +11,7 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
  console.error('Missing FIREBASE_SERVICE_ACCOUNT_JSON environment variable. Set it in your hosting provider.');
  process.exit(1);
 }
-const rawCredentials = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-
-if (!rawCredentials) {
-  console.error("Firebase credentials are missing.");
-  process.exit(1);
-}
-
-let credentials;
-
-try {
-  credentials = JSON.parse(rawCredentials);
-} catch (error) {
-  console.error(
-    "Firebase credentials are not valid JSON. Check the Render environment variable value."
-  );
-  process.exit(1);
-}
-
-admin.initializeApp({
-  credential: admin.credential.cert(credentials)
-});
+admin.initializeApp({credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON))});
 const db=admin.firestore();
 const auth=admin.auth();
 const asyncRoute=fn=>(req,res,next)=>Promise.resolve(fn(req,res,next)).catch(next);
