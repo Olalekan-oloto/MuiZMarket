@@ -4,6 +4,10 @@
   const title = $('#formTitle'), subtitle = $('#formSubtitle'), message = $('#accountMessage');
   const tabs = [...document.querySelectorAll('[data-view]')];
   let auth = null, db = null, currentView = 'register';
+  const accountStatusEl = document.querySelector('#accountStatus');
+  const signOutButtonEl = document.querySelector('#signOutButton');
+  if (accountStatusEl) accountStatusEl.hidden = true;
+  if (signOutButtonEl) signOutButtonEl.hidden = true;
   const config = window.MUIZMARKET_FIREBASE_CONFIG;
   const configReady = config && config.apiKey && !config.apiKey.includes('PASTE_') && config.projectId && !config.projectId.includes('YOUR_') && config.appId && !config.appId.includes('YOUR_');
   const say = (text, type='') => { message.textContent = text; message.className = `form-message ${type}`; };
@@ -25,8 +29,8 @@
     'auth/network-request-failed':'Network error. Check your connection and try again.',
     'auth/operation-not-allowed':'Email/password sign-in is disabled for this Firebase project. Enable the Email/Password provider in Firebase Authentication.',
     'auth/invalid-api-key':'Firebase API key is invalid. Check the existing web app configuration.',
-    'permission-denied':'Firestore denied a registration write. Check the console for the exact failed stage; make sure the published rules and firebase-config.js use the same Firebase project.'
-  };return messages[code]||'Could not complete this request. Check your connection and Firebase setup, then try again.';}
+    'permission-denied':'Firestore denied the operation at one step of registration. Open the browser console and check the “MuiZMarket registration failed” entry for the stage and error code. Do not change security rules until that exact step is identified.'
+  };return messages[code]||(code ? 'Could not complete this request ('+code+'). Check the browser console for details, then verify your Firebase setup.' : 'Could not complete this request. Check your connection and Firebase setup, then try again.');}
   const normalUsername=v=>v.trim().toLowerCase();
   const apiBase=()=>String(window.MUIZMARKET_API_URL||'').trim().replace(/\/$/,'');
   async function apiRequest(path, options={}) {
@@ -51,9 +55,9 @@
       credential=await auth.createUserWithEmailAndPassword(email,password);
       const user=credential.user, usernameRef=db.collection('usernames').doc(usernameKey), profileRef=db.collection('users').doc(user.uid);
       // Keep the profile fields compatible with the existing Firestore rules.
-      registrationStage='checking username reservation';
+      registrationStage='checking username reservation permission';
       await db.runTransaction(async tx=>{const existing=await tx.get(usernameRef);if(existing.exists)throw new Error('USERNAME_TAKEN');registrationStage='writing username reservation and user profile';tx.set(usernameRef,{uid:user.uid});tx.set(profileRef,{uid:user.uid,fullName,username,usernameKey,email,country,phone,dob,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});});
-      registrationStage='setting account role';
+      registrationStage='assigning account role';
       let roleSaved = role === 'buyer';
       if(apiBase()) {
         try { await apiRequest('/api/account/role',{method:'POST',body:JSON.stringify({role})}); roleSaved=true; }
@@ -67,7 +71,11 @@
       const mailNote=verificationSent?' Check your email for the verification link.':' Your account was created, but the verification email could not be sent. Sign in to request another verification email.';
       view('login'); say('Account created successfully.'+mailNote+roleNote,'success');
     }catch(err){
-      console.error('MuiZMarket registration failed:', {stage:registrationStage, code:err&&err.code||null, message:err&&err.message||String(err)});
+      console.error('MuiZMarket registration failed:', {
+        stage: registrationStage,
+        code: err && err.code ? err.code : null,
+        message: err && err.message ? err.message : String(err)
+      });
       // Delete the Auth user only when profile creation failed; never delete an account
       // because verification email delivery or role assignment had a temporary failure.
       if(credential && credential.user) {

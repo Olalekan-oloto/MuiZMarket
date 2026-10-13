@@ -1,0 +1,8 @@
+MuiZMarket latest loading/registration UX package
+
+Changes in this package:
+- Added a lightweight branded loading overlay to HTML pages; it fades after the page load event, with a 7-second safety fallback.
+- Existing account auth.js already disables submit buttons and shows “Please wait…” while registration/login/reset requests are running.
+- Kept existing Firebase configuration and Firestore rules unchanged.
+
+Important: a loading screen improves feedback but does not prove Firebase permissions/configuration are correct. Publish these files to the same GitHub Pages branch, then test registration. If Firestore permission-denied remains, inspect the browser console for the logged registration stage and Firebase error code.

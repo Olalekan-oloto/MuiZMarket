@@ -9,8 +9,6 @@ What this adds
 
 Important: accounts will NOT work until you configure Firebase. Do not upload real user data while setup is incomplete.
 
-FIRST: For account creation to work, publish the firestore.rules file below in Firebase Console > Firestore Database > Rules, and ensure firebase-config.js uses that same Firebase project. This ZIP cannot publish changes to your Firebase account automatically.
-
 A. Create Firebase project (Android browser)
 1. Open https://console.firebase.google.com/ and create a project named MuiZMarket (or select an existing project).
 2. In Project settings, add a Web app (</> icon). Register it and copy its web config values.
