@@ -4,6 +4,10 @@
   const title = $('#formTitle'), subtitle = $('#formSubtitle'), message = $('#accountMessage');
   const tabs = [...document.querySelectorAll('[data-view]')];
   let auth = null, db = null, currentView = 'register';
+  const accountStatusEl = document.querySelector('#accountStatus');
+  const signOutButtonEl = document.querySelector('#signOutButton');
+  if (accountStatusEl) accountStatusEl.hidden = true;
+  if (signOutButtonEl) signOutButtonEl.hidden = true;
   const config = window.MUIZMARKET_FIREBASE_CONFIG;
   const configReady = config && config.apiKey && !config.apiKey.includes('PASTE_') && config.projectId && !config.projectId.includes('YOUR_') && config.appId && !config.appId.includes('YOUR_');
   const say = (text, type='') => { message.textContent = text; message.className = `form-message ${type}`; };
@@ -25,8 +29,8 @@
     'auth/network-request-failed':'Network error. Check your connection and try again.',
     'auth/operation-not-allowed':'Email/password sign-in is disabled for this Firebase project. Enable the Email/Password provider in Firebase Authentication.',
     'auth/invalid-api-key':'Firebase API key is invalid. Check the existing web app configuration.',
-    'permission-denied':'The database rejected this action. Check the Firestore security rules in SETUP-FIREBASE.txt.'
-  };return messages[code]||'Could not complete this request. Check your connection and Firebase setup, then try again.';}
+    'permission-denied':'Firestore denied a database operation during registration or sign-in. Your current rules appear compatible with the profile fields, so verify that the website is using the intended Firebase project and that the published rules match SETUP-FIREBASE.txt. No security rules were changed.'
+  };return messages[code]||(code ? 'Could not complete this request ('+code+'). Check the browser console for details, then verify your Firebase setup.' : 'Could not complete this request. Check your connection and Firebase setup, then try again.');}
   const normalUsername=v=>v.trim().toLowerCase();
   const apiBase=()=>String(window.MUIZMARKET_API_URL||'').trim().replace(/\/$/,'');
   async function apiRequest(path, options={}) {
@@ -65,6 +69,10 @@
       const mailNote=verificationSent?' Check your email for the verification link.':' Your account was created, but the verification email could not be sent. Sign in to request another verification email.';
       view('login'); say('Account created successfully.'+mailNote+roleNote,'success');
     }catch(err){
+      console.error('MuiZMarket registration failed:', {
+        code: err && err.code ? err.code : null,
+        message: err && err.message ? err.message : String(err)
+      });
       // Delete the Auth user only when profile creation failed; never delete an account
       // because verification email delivery or role assignment had a temporary failure.
       if(credential && credential.user) {
