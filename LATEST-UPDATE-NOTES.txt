@@ -6,3 +6,7 @@ Changes in this package:
 - Kept existing Firebase configuration and Firestore rules unchanged.
 
 Important: a loading screen improves feedback but does not prove Firebase permissions/configuration are correct. Publish these files to the same GitHub Pages branch, then test registration. If Firestore permission-denied remains, inspect the browser console for the logged registration stage and Firebase error code.
+
+
+LOADING SCREEN TIMING UPDATE
+The branded loading screen now remains visible for at least 2.6 seconds after page load/refresh, then fades out. A 12-second safety timeout prevents it from staying stuck if the load event does not fire.

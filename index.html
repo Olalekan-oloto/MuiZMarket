@@ -17,7 +17,7 @@
 </head>
 <body>
 <div id="muizPageLoader" role="status" aria-live="polite" aria-label="Loading MuiZMarket"><div class="muiz-loader-inner"><div class="muiz-loader-mark" aria-hidden="true"></div><div class="muiz-loader-name">MuiZ<span>Market</span></div><span>LOADING YOUR MARKETPLACE</span></div></div>
-<script id="muiz-page-loader-script">(function(){var l=document.getElementById('muizPageLoader');if(!l)return;var done=false;function hide(){if(done)return;done=true;window.setTimeout(function(){l.classList.add('is-hidden');window.setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l)},260)},180)}if(document.readyState==='complete'){hide()}else{window.addEventListener('load',hide,{once:true});}window.setTimeout(hide,7000)})();</script>
+<script id="muiz-page-loader-script">(function(){var l=document.getElementById('muizPageLoader');if(!l)return;var started=Date.now(),done=false,MIN_SHOW_MS=2600;function hide(){if(done)return;done=true;var wait=Math.max(0,MIN_SHOW_MS-(Date.now()-started));window.setTimeout(function(){l.classList.add('is-hidden');window.setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l)},260)},wait)}if(document.readyState==='complete'){hide()}else{window.addEventListener('load',hide,{once:true});}window.setTimeout(hide,12000)})();</script>
 
   <div class="announcement"><span class="spark">✦</span> Welcome to your digital marketplace <span class="announcement-tag">MUIZMARKET</span></div>
   <header class="topbar">
