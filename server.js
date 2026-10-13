@@ -4,6 +4,16 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const app = express();
+app.get("/", (req, res) => {
+  res.json({
+    message: "Welcome to MuiZMarket API",
+    status: "success",
+    endpoints: [
+      "/health",
+      "/api/products"
+    ]
+  });
+});
 app.use(express.json({limit:'1mb'}));
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(x=>x.trim()).filter(Boolean);
 app.use(cors({origin(origin, cb){ if(!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) return cb(null,true); return cb(new Error('Origin not allowed')); }}));
