@@ -12,6 +12,7 @@
 <label>Username<input name="username" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="Choose a username"><small>3–24 letters, numbers, or underscores.</small></label>
 <label>Email address<input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></label>
 <label>Password<input name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="At least 12 characters"><small>Use a unique password you do not use elsewhere.</small></label>
+<label>Account type<select name="role" required><option value="buyer" selected>Buyer — shop and manage purchases</option><option value="seller">Seller — list products for sale</option></select><small>You choose this once during registration. Sign-in will route you automatically.</small></label>
 <label>Country<select name="country" autocomplete="country-name" required><option value="">Choose your country</option><option>Nigeria</option><option>Canada</option><option>United States</option><option>United Kingdom</option><option>Ghana</option><option>South Africa</option><option>Other</option></select></label>
 <label>Phone number with country code<input name="phone" type="tel" autocomplete="tel" required minlength="7" maxlength="25" placeholder="+234 800 000 0000"></label>
 <label>Date of birth<input name="dob" type="date" autocomplete="bday" required></label>

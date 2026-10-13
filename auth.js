@@ -23,12 +23,24 @@
     'auth/invalid-credential':'Email or password is incorrect.',
     'auth/too-many-requests':'Too many attempts. Wait a while before trying again.',
     'auth/network-request-failed':'Network error. Check your connection and try again.',
+    'auth/operation-not-allowed':'Email/password sign-in is disabled for this Firebase project. Enable the Email/Password provider in Firebase Authentication.',
+    'auth/invalid-api-key':'Firebase API key is invalid. Check the existing web app configuration.',
     'permission-denied':'The database rejected this action. Check the Firestore security rules in SETUP-FIREBASE.txt.'
   };return messages[code]||'Could not complete this request. Check your connection and Firebase setup, then try again.';}
   const normalUsername=v=>v.trim().toLowerCase();
+  const apiBase=()=>String(window.MUIZMARKET_API_URL||'').trim().replace(/\/$/,'');
+  async function apiRequest(path, options={}) {
+    const base=apiBase(); if(!base) throw new Error('API_NOT_CONFIGURED');
+    const user=auth.currentUser; const token=user?await user.getIdToken():'';
+    const response=await fetch(base+path,{...options,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}});
+    const body=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(body.error||'API_REQUEST_FAILED');
+    return body;
+  }
   registerForm.addEventListener('submit',async e=>{
     e.preventDefault(); say(''); if(!registerForm.reportValidity())return;
-    const f=new FormData(registerForm), fullName=String(f.get('fullName')).trim(), username=String(f.get('username')).trim(), usernameKey=normalUsername(username), email=String(f.get('email')).trim().toLowerCase(), password=String(f.get('password')), country=String(f.get('country')), phone=String(f.get('phone')).trim(), dob=String(f.get('dob'));
+    const f=new FormData(registerForm), fullName=String(f.get('fullName')).trim(), username=String(f.get('username')).trim(), usernameKey=normalUsername(username), email=String(f.get('email')).trim().toLowerCase(), password=String(f.get('password')), role=String(f.get('role')||'buyer').toLowerCase(), country=String(f.get('country')), phone=String(f.get('phone')).trim(), dob=String(f.get('dob'));
+    if(!['buyer','seller'].includes(role)){say('Choose Buyer or Seller to continue.','error');return;}
     if(!/^[A-Za-z0-9_]{3,24}$/.test(username)){say('Username must be 3–24 letters, numbers, or underscores.','error');return;}
     if(!/^\+[1-9]\d{6,14}$/.test(phone.replace(/[\s()-]/g,''))){say('Enter your phone number with country code, such as +2348012345678.','error');return;}
     if(new Date(dob+'T00:00:00')>=new Date()){say('Enter a valid date of birth in the past.','error');return;}
@@ -36,17 +48,27 @@
     setBusy(registerForm,true);
     let credential=null, reserved=false;
     try{
-      // Reserve username and write the profile in one transaction; Firestore rules must be installed first.
       credential=await auth.createUserWithEmailAndPassword(email,password);
       const user=credential.user, usernameRef=db.collection('usernames').doc(usernameKey), profileRef=db.collection('users').doc(user.uid);
-      // Send verification before profile transaction so a mail-service failure cannot leave a saved profile behind.
-      await user.sendEmailVerification({url:window.location.origin+window.location.pathname,handleCodeInApp:false});
+      // Keep the profile fields compatible with the existing Firestore rules.
       await db.runTransaction(async tx=>{const existing=await tx.get(usernameRef);if(existing.exists)throw new Error('USERNAME_TAKEN');tx.set(usernameRef,{uid:user.uid});tx.set(profileRef,{uid:user.uid,fullName,username,usernameKey,email,country,phone,dob,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});});
-      registerForm.reset(); say('Account created. Check your email for a verification link before using account features. You can now sign in after verifying your address.','success'); view('login');
+      let roleSaved = role === 'buyer';
+      if(apiBase()) {
+        try { await apiRequest('/api/account/role',{method:'POST',body:JSON.stringify({role})}); roleSaved=true; }
+        catch(roleError) { console.error('MuiZMarket role setup:',roleError); }
+      }
+      let verificationSent=true;
+      try { await user.sendEmailVerification({url:window.location.origin+window.location.pathname,handleCodeInApp:false}); }
+      catch(emailError) { verificationSent=false; console.error('MuiZMarket verification email:',emailError); }
+      registerForm.reset();
+      const roleNote=roleSaved?'':(role==='seller'?' Your account was created, but seller role setup needs the deployed API. Keep this account; do not register again.':'');
+      const mailNote=verificationSent?' Check your email for the verification link.':' Your account was created, but the verification email could not be sent. Sign in to request another verification email.';
+      view('login'); say('Account created successfully.'+mailNote+roleNote,'success');
     }catch(err){
-      if(credential && credential.user){
-        // If profile creation failed, remove the newly-created unverified auth account to avoid an orphan account.
-        try{await credential.user.delete();}catch(_){ }
+      // Delete the Auth user only when profile creation failed; never delete an account
+      // because verification email delivery or role assignment had a temporary failure.
+      if(credential && credential.user) {
+        try { const profile=await db.collection('users').doc(credential.user.uid).get(); if(!profile.exists) await credential.user.delete(); } catch(_) { /* preserve the account if cleanup cannot be confirmed */ }
       }
       say(err.message==='USERNAME_TAKEN'?'That username is already taken. Choose another one.':cleanError(err),'error');
     }finally{setBusy(registerForm,false);}
@@ -65,40 +87,36 @@
       await result.user.reload();
       const user = auth.currentUser || result.user;
       if (!user.emailVerified) {
+        let resent=false;
+        try { await user.sendEmailVerification({url:window.location.origin+window.location.pathname,handleCodeInApp:false}); resent=true; } catch (_) {}
         await auth.signOut();
-        say('Please verify your email using the link we sent before signing in. Check your inbox and spam folder.', 'error');
+        say(resent?'Your email is not verified yet. We sent a fresh verification link; check your inbox and spam folder.':'Your email is not verified yet. Check your inbox and spam folder, wait a little, then try signing in again to request another link.', 'error');
         return;
       }
-      // Read the existing user profile to determine which dashboard to open.
-      // Accounts without a recognized role safely default to the buyer dashboard.
+      // Read the role saved in this user's existing profile. The user does not
+      // need to choose a dashboard during sign-in.
       let role = 'buyer';
       try {
-        const profile = await db.collection('users').doc(user.uid).get();
-        if (profile.exists) {
-          const data = profile.data() || {};
-          const candidates = [data.role, data.accountRole, data.accountType, data.userType, data.userRole];
-          const normalizedRole = candidates
-            .find(value => typeof value === 'string' && value.trim())
-            ?.trim()
-            .toLowerCase();
-          if (normalizedRole === 'seller' || normalizedRole === 'vendor') {
-            role = 'seller';
-          } else if (normalizedRole === 'buyer' || normalizedRole === 'customer') {
-            role = 'buyer';
-          }
+        const profileSnap = await db.collection('users').doc(user.uid).get();
+        if (profileSnap.exists) {
+          const profile = profileSnap.data() || {};
+          const rawRole = String(profile.role || profile.accountType || profile.userType || profile.accountRole || '').trim().toLowerCase();
+          if (['seller', 'vendor', 'merchant'].includes(rawRole)) role = 'seller';
+          else if (['buyer', 'customer'].includes(rawRole)) role = 'buyer';
+          // Legacy profiles without a recognized role use the buyer default.
         }
       } catch (profileError) {
-        // Profile lookup must not block a valid sign-in; use the safe buyer default.
-        console.warn('MuiZMarket: could not read the user role; opening buyer dashboard.', profileError);
+        // Avoid guessing a dashboard if the role lookup itself failed.
+        say('You are signed in, but MuiZMarket could not read your account profile to choose the right dashboard. Please try again.', 'error');
+        return;
       }
-
-      const dashboard = role === 'seller' ? './seller.html' : './buyer.html';
       say(`Signed in successfully. Opening your ${role} dashboard…`, 'success');
       $('#accountStatus').hidden = false;
       $('#accountStatus').textContent = 'Signed in as ' + user.email;
       $('#signOutButton').hidden = false;
       loginForm.reset();
       // Replace the URL so Back does not return to the submitted login form.
+      const dashboard = role === 'seller' ? './seller.html' : './buyer.html';
       window.location.replace(new URL(dashboard, window.location.href).href);
     } catch (err) {
       say(cleanError(err), 'error');

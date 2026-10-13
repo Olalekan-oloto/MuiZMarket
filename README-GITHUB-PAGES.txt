@@ -9,7 +9,9 @@ This folder is prepared for GitHub Pages to show the styled marketplace UI. It i
 4. Wait for the Pages deployment, then refresh your `https://Olalekan-oloto.github.io/MuiZMarket/` page.
 
 ## Important limits
-This is a static design/testing preview. GitHub Pages cannot run the Node.js server, database, sign-in, email verification, seller administration, or payment processing. Those features need the backend deployed to a Node.js host and the frontend configured to call it. The product cards in this preview are demonstration data, not real listings, and checkout is deliberately disabled.
+GitHub Pages can serve the frontend, while Firebase Authentication handles sign-in and email verification. The Node.js backend must be deployed separately for saved Buyer/Seller roles and secure admin account monitoring. Configure MUIZMARKET_API_URL in firebase-config.js after deploying the backend. The product cards in this preview are demonstration data, not real listings, and checkout is deliberately disabled.
 
 
 BACKEND: See BACKEND-SETUP.md and server.js. GitHub Pages cannot execute server.js; deploy it separately. Never commit Firebase service-account credentials.
+
+Admin setup: follow BACKEND-SETUP.md and set ADMIN_UIDS on the backend host to the trusted administrator Firebase Auth UID. The private admin dashboard is support-inbox.html. Never add admin privileges to browser-side code or public Firestore profile fields.
