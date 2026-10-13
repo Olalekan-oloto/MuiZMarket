@@ -13,11 +13,13 @@
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n);
   function render(){
+    const grid=$('#productGrid'), count=$('#productCountText'), filters=$('#categoryFilters');
+    if(!grid || !count || !filters) return;
     const list=products.filter(p=>(category==='All products'||p.category===category)&&`${p.name} ${p.category} ${p.description}`.toLowerCase().includes(query.toLowerCase()));
-    $('#productGrid').innerHTML=list.length?list.map(p=>`<article class="product-card"><div class="product-top"><div class="product-symbol">${p.symbol}</div><span class="product-category">${esc(p.category)}</span></div><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p><div class="product-bottom"><div class="price">${money(p.price)} <small>USD</small></div><button class="add-btn" data-add="${p.id}">＋ Add to bag</button></div></article>`).join(''):'<div class="empty-state">No products found. Try another search or category.</div>';
-    $('#productCountText').textContent=`${list.length} demo ${list.length===1?'product':'products'} in this preview`;
+    grid.innerHTML=list.length?list.map(p=>`<article class="product-card"><div class="product-top"><div class="product-symbol">${p.symbol}</div><span class="product-category">${esc(p.category)}</span></div><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p><div class="product-bottom"><div class="price">${money(p.price)} <small>USD</small></div><button class="add-btn" data-add="${p.id}">＋ Add to bag</button></div></article>`).join(''):'<div class="empty-state">No products found. Try another search or category.</div>';
+    count.textContent=`${list.length} demo ${list.length===1?'product':'products'} in this preview`;
     const cats=['All products',...new Set(products.map(p=>p.category))];
-    $('#categoryFilters').innerHTML=cats.map(c=>`<button class="filter-btn ${category===c?'active':''}" data-filter="${esc(c)}">${esc(c)}</button>`).join('');
+    filters.innerHTML=cats.map(c=>`<button class="filter-btn ${category===c?'active':''}" data-filter="${esc(c)}">${esc(c)}</button>`).join('');
     renderCart();
   }
   function renderCart(){
@@ -29,8 +31,8 @@
     localStorage.setItem('muizmarket-demo-cart',JSON.stringify(cart));
   }
   function openCart(open){$('#cartDrawer').classList.toggle('open',open);$('#overlay').classList.toggle('open',open);$('#cartDrawer').setAttribute('aria-hidden',String(!open));}
-  $('#year').textContent=new Date().getFullYear();
-  $('#searchInput').addEventListener('input',e=>{query=e.target.value;render()});
+  const year=$('#year'); if(year) year.textContent=new Date().getFullYear();
+  const search=$('#searchInput'); if(search) search.addEventListener('input',e=>{query=e.target.value;render()});
   document.addEventListener('click',e=>{
     const add=e.target.closest('[data-add]'); if(add){const id=Number(add.dataset.add),line=cart.find(x=>x.id===id);if(line)line.quantity=Math.min(10,line.quantity+1);else cart.push({id,quantity:1});renderCart();return;}
     const filter=e.target.closest('[data-filter]');if(filter){category=filter.dataset.filter;render();return;}
@@ -44,7 +46,7 @@
     if(e.target.closest('#menuToggle')){const nav=document.querySelector('.desktop-nav');nav.style.display=nav.style.display==='flex'?'':'flex';nav.style.flexDirection='column';}
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape')openCart(false)});
-  $('#productGrid').innerHTML=''; render();
+  const productGrid=$('#productGrid'); if(productGrid) productGrid.innerHTML=''; render();
   const seller=$('#sellerWorkspace'); if(seller)seller.innerHTML='<div class="seller-panel"><h3>Seller workspace preview</h3><p>Seller applications, listings, subscriptions and payouts require the live Node.js backend.</p></div>';
   const orders=$('#ordersList'); if(orders)orders.innerHTML='<div class="empty-state">Order history requires the live Node.js backend.</div>';
 })();

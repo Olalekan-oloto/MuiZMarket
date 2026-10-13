@@ -1,0 +1,16 @@
+MuiZMarket repair notes
+=======================
+
+Changes in this package:
+- Fixed the public home product renderer to guard against missing page elements.
+- Reworked buyer/seller page logic so GitHub Pages does not call nonexistent same-origin /api routes and then show a generic error.
+- Buyer dashboard now checks Firebase Authentication and clearly explains email verification status.
+- Seller dashboard now displays account status and clearly explains that seller tools require the API server.
+- Added Firebase SDK/config includes to buyer and seller pages.
+- Corrected links that incorrectly pointed to the domain root.
+- Added timeouts and helpful fallback messages instead of indefinite loading.
+
+IMPORTANT LIMITATION
+The ZIP you uploaded does not contain server.js or package.json. GitHub Pages only serves static HTML/CSS/JS and cannot run Node.js API routes. This repair prevents the static pages from showing misleading API errors, but real orders, checkout, seller applications, payouts, AI support, and support inbox require the original Node.js backend and its environment variables to be deployed to a server host.
+
+Firebase still depends on the settings in the Firebase Console: Email/Password provider enabled, the published Firestore rules, an existing Firestore database if profiles are used, and the deployed website domain listed under Authentication authorized domains. I cannot verify live Firebase access from this ZIP alone.
