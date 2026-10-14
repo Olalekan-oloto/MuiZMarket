@@ -1,0 +1,12 @@
+MuiZMarket registration and dashboard fix
+
+Changes in this package:
+- The registration phone field no longer uses an automatic country-code selector. The person types the full international number, including + and the country code (example: +2348012345678).
+- Removed the intl-tel-input widget scripts/styles from account.html.
+- After successful email/password or Google sign-in, auth.js routes to the buyer or seller dashboard based on the saved role. Profile details can be completed later in Profile Settings.
+
+Important:
+- Upload the CONTENTS of the mm folder to the root of your GitHub repository, replacing matching files. Do not upload the outer mm folder itself.
+- Keep your existing firebase-config.js in the repository root; this ZIP does not include your private project settings.
+- Firebase email/password accounts still need email verification before the dashboard will show account data. Check your inbox and spam folder, click the verification link, then sign in again.
+- GitHub Pages only hosts static files. Firestore rules and Firebase setup must be configured correctly; this package cannot prove that remote Firebase permissions are correct.
