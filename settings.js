@@ -48,7 +48,7 @@
         tx.set(ref,{uid:currentUser.uid,fullName,username,usernameKey:key,email:currentUser.email||'',country,phone,dob,profilePhotoURL:(profile&&profile.profilePhotoURL)||currentUser.photoURL||'',updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:(profile&&profile.createdAt)||firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
       });
       await currentUser.updateProfile({displayName:fullName});
-      const snap=await ref.get();profile=snap.data();fill(profile,currentUser);say('Your MuiZMarket profile has been saved.','success');
+      const snap=await ref.get();profile=snap.data();fill(profile,currentUser);say('Your MuiZMarket profile has been saved. Opening your dashboard…','success');window.setTimeout(()=>{const role=String(profile.role||profile.accountType||'buyer').toLowerCase();window.location.assign(new URL(role==='seller'?'./seller.html':'./buyer.html',window.location.href).href);},900);
     }catch(err){say(friendly(err),'error');}finally{busy(false);}
   });
   $('#settingsSignOut').addEventListener('click',async()=>{try{await auth.signOut();window.location.replace(new URL('./account.html',location.href).href);}catch(err){say(friendly(err),'error');}});

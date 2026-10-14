@@ -1,0 +1,25 @@
+MuiZMarket dashboard repair
+===========================
+
+Change made:
+- settings.js now redirects to the appropriate dashboard after the profile is saved:
+  seller accounts -> seller.html
+  buyer/default accounts -> buyer.html
+
+Important configuration issue found:
+- firebase-config.js in this ZIP has blank apiKey, authDomain, projectId, and appId fields.
+- Firebase sign-in, Google redirect, profile creation, and dashboard loading will not work until you fill those fields with the web app configuration from the exact Firebase project you intend to use.
+- Do not paste service-account JSON or private keys into firebase-config.js.
+
+Expected Google sign-in flow:
+1. Google sign-in returns to account.html.
+2. MuiZMarket creates/loads the user's Firestore profile. New social sign-ins default to buyer.
+3. If country, phone, or date of birth is missing, auth.js sends the user to settings.html to complete the profile.
+4. After Save changes succeeds, the updated settings.js sends the user to buyer.html (or seller.html if the stored role is seller).
+
+Before testing:
+- Enable Google and Email/Password providers in Firebase Authentication as needed.
+- Add olalekan-oloto.github.io to Firebase Authentication's Authorized domains.
+- Create Firestore and publish firestore.rules.
+- Ensure the site is deployed over HTTPS.
+- The live behavior cannot be guaranteed from source inspection alone; test after configuration.
