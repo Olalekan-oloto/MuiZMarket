@@ -30,9 +30,11 @@ async function setPageAuth(){
 async function loadBuyer(){
  const root=$("#buyerDashboard");if(!root)return;
  root.innerHTML='<p>Checking your account…</p>';
- try {const auth=getAuth();if(!auth){root.innerHTML='<h2>Account setup needed</h2><p>Firebase could not be initialized. Check firebase-config.js and your Firebase project settings.</p><a class="btn btn-gold" href="./account.html">Open account ↗</a>';return;}
+ try {
+  const auth=getAuth();
+  if(!auth){root.innerHTML='<h2>Account setup needed</h2><p>Firebase could not be initialized. Check your existing firebase-config.js and Firebase project settings.</p><a class="btn btn-gold" href="./account.html">Open account ↗</a>';return;}
   const user=await new Promise((resolve,reject)=>{let unsubscribe;const timeout=setTimeout(()=>{if(unsubscribe)unsubscribe();reject(new Error("Account check timed out"));},10000);unsubscribe=auth.onAuthStateChanged(u=>{clearTimeout(timeout);unsubscribe();resolve(u);},err=>{clearTimeout(timeout);if(unsubscribe)unsubscribe();reject(err);});});
-  if(!user){root.innerHTML='<h2>Sign in to continue</h2><p>Your order history is private to your account.</p><a class="btn btn-gold" href="./account.html">Sign in / create account ↗</a>';return;}
+  if(!user){root.innerHTML='<h2>Sign in to continue</h2><p>Your dashboard is private to your account.</p><a class="btn btn-gold" href="./account.html">Sign in / create account ↗</a>';return;}
   if(!user.emailVerified){root.innerHTML=`<h2>Verify your email</h2><p>${esc(user.email)} is signed in, but the email address has not been verified.</p><p>Open the verification link sent to your inbox, then sign in again.</p><button class="btn btn-outline" id="resendVerification">Resend verification email</button><div id="buyerMessage" class="form-message" role="status"></div><button class="btn btn-outline" id="buyerSignOut">Sign out</button>`;
    $("#resendVerification").addEventListener("click",async()=>{const out=$("#buyerMessage");try{await user.sendEmailVerification();out.textContent="Verification email sent. Check your inbox and spam folder.";}catch(e){out.textContent=e.code==="auth/too-many-requests"?"Please wait before requesting another email.":"Could not send the email. Check your connection and Firebase settings.";}});
    $("#buyerSignOut").addEventListener("click",async()=>{await auth.signOut();location.href="./account.html";});return;
@@ -40,10 +42,29 @@ async function loadBuyer(){
   let role;
   try { role=await getAccountRole(user); } catch (_) { root.innerHTML='<h2>Could not check your account role</h2><p>Please refresh the page or sign in again so MuiZMarket can open the correct dashboard.</p><a class="btn btn-outline" href="./account.html">Return to sign in ↗</a>'; return; }
   if(redirectToRoleDashboard(role,"buyer"))return;
-  let name=user.displayName||user.email.split("@")[0];
-  try{const doc=await firebase.firestore().collection("users").doc(user.uid).get();if(doc.exists)name=doc.data().fullName||name;}catch(_){/* Profile is optional for the basic dashboard. */}
-  root.innerHTML=`<h2>Welcome, ${esc(name)}</h2><p>${esc(user.email)} · Verified Firebase account</p>${backendUnavailable()}<a class="btn btn-gold" href="./index.html#marketplace">Browse marketplace ↗</a><button class="btn btn-outline" id="buyerSignOut">Sign out</button>`;
-  $("#buyerSignOut").addEventListener("click",async()=>{await auth.signOut();location.href="./account.html";});
+  let profile={};
+  try{const doc=await firebase.firestore().collection("users").doc(user.uid).get();if(doc.exists)profile=doc.data()||{};}catch(e){console.warn("Buyer profile could not be read:",e);}
+  const name=profile.fullName||user.displayName||(user.email||"buyer").split("@")[0];
+  let saved=[];try{saved=JSON.parse(localStorage.getItem(`muizmarket-saved-${user.uid}`)||"[]");if(!Array.isArray(saved))saved=[];}catch(_){saved=[];}
+  const initials=String(name).trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"B";
+  root.innerHTML=`
+   <style>
+   .mz-dash{color:var(--text,#eee);display:grid;gap:18px}.mz-welcome{padding:24px;border:1px solid #4b402b;border-radius:14px;background:linear-gradient(120deg,#242016,#171714);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.mz-welcome h2{margin:5px 0 8px;font-size:clamp(24px,4vw,34px)}.mz-muted{color:#aaa394;font-size:13px;line-height:1.7}.mz-avatar{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:#342a17;border:1px solid #8c7137;color:#f5d58b;font-size:21px;font-weight:800;flex-shrink:0}.mz-dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.mz-dash-card{display:block;text-decoration:none;color:inherit;padding:19px;border:1px solid #383329;border-radius:12px;background:#191916;min-height:130px}.mz-dash-card:hover{border-color:#b99747}.mz-dash-card .ico{font-size:23px}.mz-dash-card h3{margin:12px 0 6px;font-size:16px}.mz-dash-card p{margin:0;color:#aaa394;font-size:12px;line-height:1.6}.mz-dash-section{padding:20px;border:1px solid #383329;border-radius:12px;background:#171715}.mz-dash-section h3{margin:0 0 8px}.mz-dash-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.mz-badge{display:inline-block;border:1px solid #4d432e;border-radius:30px;padding:5px 9px;font-size:11px;color:#e7cb83}.mz-notice{margin-top:12px;padding:12px;border-radius:8px;background:#262116;color:#d8cba8;font-size:12px;line-height:1.65}
+   @media(max-width:560px){.mz-dash-grid{grid-template-columns:1fr}.mz-welcome{padding:18px}}
+   </style>
+   <div class="mz-dash">
+    <section class="mz-welcome"><div><div class="eyebrow">BUYER DASHBOARD</div><h2>Welcome, ${esc(name)}</h2><p class="mz-muted">Your MuiZMarket account overview.</p><span class="mz-badge">✓ Email verified</span></div><div class="mz-avatar" aria-hidden="true">${esc(initials)}</div></section>
+    <section class="mz-dash-grid" aria-label="Buyer account shortcuts">
+     <a class="mz-dash-card" href="./index.html#marketplace"><span class="ico" aria-hidden="true">🛍️</span><h3>Browse marketplace</h3><p>Explore the products currently shown on MuiZMarket.</p></a>
+     <a class="mz-dash-card" href="./settings.html"><span class="ico" aria-hidden="true">👤</span><h3>My profile</h3><p>Review and update your profile details.</p></a>
+     <a class="mz-dash-card" href="./index.html#marketplace" id="savedProductsShortcut"><span class="ico" aria-hidden="true">♡</span><h3>Saved products <span id="savedProductCount">${saved.length}</span></h3><p>Your saved list is stored on this device for this account.</p></a>
+     <a class="mz-dash-card" href="./contact.html"><span class="ico" aria-hidden="true">💬</span><h3>Help & support</h3><p>Visit the contact page if you need assistance.</p></a>
+    </section>
+    <section class="mz-dash-section"><h3>Account information</h3><p class="mz-muted">${esc(user.email||"")}</p><p class="mz-muted">Name: ${esc(name)}<br>Username: ${esc(profile.username||"Not set yet")}<br>Country: ${esc(profile.country||"Not set yet")}</p><div class="mz-dash-actions"><a class="btn btn-gold" href="./settings.html">Edit profile ↗</a><button class="btn btn-outline" id="buyerSignOut">Sign out</button></div></section>
+    <section class="mz-dash-section"><h3>Orders & checkout</h3><p class="mz-muted">Your order history will appear here once secure checkout and order recording are connected. No orders are being invented or displayed as completed.</p><div class="mz-notice">Checkout and real-money payments are not active yet. Do not send payment to anyone claiming this dashboard has processed an order.</div></section>
+   </div>`;
+  $("#buyerSignOut")?.addEventListener("click",async()=>{await auth.signOut();location.href="./account.html";});
+  $("#savedProductsShortcut")?.addEventListener("click",()=>{try{const latest=JSON.parse(localStorage.getItem(`muizmarket-saved-${user.uid}`)||"[]");if(!latest.length){toast("You have no saved products yet. Saved products can be added when browsing features are connected.");}}catch(_){}});
  }catch(e){root.innerHTML='<h2>We could not load your account</h2><p>Please check your internet connection and Firebase Authentication settings, then refresh this page.</p><a class="btn btn-outline" href="./account.html">Return to sign in ↗</a>';console.error("MuiZMarket buyer dashboard:",e);}
 }
 async function loadSeller(){

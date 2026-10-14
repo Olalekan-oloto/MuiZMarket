@@ -1,0 +1,20 @@
+MuiZMarket Buyer Dashboard update
+
+This update replaces the minimal buyer welcome card in pages.js with a fuller buyer dashboard UI. It preserves the existing Firebase config and authentication flow.
+
+HOW TO APPLY
+1. Download and extract this ZIP.
+2. Open the mm folder.
+3. In your GitHub repository, open pages.js, choose Edit (pencil), replace the entire file contents with the supplied pages.js, and commit the change. Alternatively upload/replace pages.js from the repository file list.
+4. Do not replace firebase-config.js. It is intentionally not included.
+5. Wait for GitHub Pages to redeploy, then refresh buyer.html.
+
+CURRENTLY WORKING IN THIS UI
+- Uses existing Firebase sign-in and verified-email check.
+- Reads the signed-in user's own profile from users/{uid} when Firestore rules permit.
+- Links to profile settings, marketplace, contact/support, and sign-out.
+- Shows an honest order/checkout status notice.
+
+NOT IMPLEMENTED BY THIS PATCH
+- Real checkout, orders, wallet, deposits, withdrawals, payment verification, or actual product saving. The saved-product count is only a local-device placeholder until a proper save-product feature is implemented.
+- This patch does not modify Firestore rules or the seller dashboard.
