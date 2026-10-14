@@ -1,0 +1,11 @@
+MuiZMarket account update based on the uploaded Loading Screen Slower Fix package.
+
+Updated:
+- account.html/account.css: Google and Apple sign-in buttons plus email/password forms.
+- auth.js: Firebase email/password registration, sign-in, password reset, Google redirect sign-in, Apple redirect sign-in, and auto-created social profiles.
+- settings.html/settings.css/settings.js: edit full name, username, country, phone, DOB, and upload profile picture.
+- firestore.rules: owner-only profile documents and username reservations.
+- storage.rules: owner-only profile picture upload rules.
+- firebase-config.js: intentionally blanked to prevent accidental connection to a different Firebase project. Fill from the intended project's web app settings.
+
+The code syntax was checked with Node.js. This is not a claim that live Firebase has been configured or end-to-end tested. Complete PROFILE-AND-SOCIAL-LOGIN-SETUP.txt before public use.

@@ -1,0 +1,19 @@
+MuiZMarket account roles and dashboard notes
+
+WHAT THIS UPDATE DOES
+- Registration offers Buyer or Seller.
+- Email/password registration saves the selected role and redirects to the matching dashboard after creating the account. The dashboard requires email verification before protected actions.
+- Country list includes the ISO country names available at build time. Phone input uses intl-tel-input's international country-code dropdown, initially set to Nigeria, and validates the full international number.
+- Seller dashboard has a video file selector and browser preview. It is only a preview; it does not publish or upload the video. A secure upload/publish endpoint, storage policy, moderation, and listing record still need backend implementation.
+- Owner/admin dashboard is support-inbox.html. The page itself is not a security boundary. Deploy server.js and set ADMIN_UIDS to the owner's Firebase Auth UID on the backend host. Never set admin role from the browser or a public profile field.
+
+IMPORTANT SETUP
+1. Configure firebase-config.js for the intended Firebase project.
+2. Enable Email/Password and Google sign-in. Apple requires Apple Developer configuration plus Firebase Apple provider setup.
+3. Publish firestore.rules and storage.rules in Firebase.
+4. Add olalekan-oloto.github.io to Firebase Authentication's authorized domains.
+5. For admin overview, deploy the Node.js API using server.js and configure FIREBASE_SERVICE_ACCOUNT_JSON, ADMIN_UIDS, and the frontend API URL. Do not upload service-account JSON to GitHub.
+6. GitHub Pages serves only static files. Orders, payments, payouts, moderation, and video publishing are not live until the API is deployed and tested.
+
+SOCIAL LOGIN
+Google/Apple sign-in currently defaults to Buyer. To choose Seller during registration, use the email Create Account form. A future onboarding step should ask OAuth users to choose Buyer or Seller before finishing profile setup.

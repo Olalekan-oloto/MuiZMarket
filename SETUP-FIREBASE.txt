@@ -1,43 +1,88 @@
-MUIZMARKET REAL ACCOUNT SETUP (GitHub Pages + Firebase)
-=====================================================
+MUIZMARKET — REAL ACCOUNTS, GOOGLE/APPLE SIGN-IN, PROFILE SETTINGS
+==================================================================
 
-What this adds
-- Create Account with full name, username, email, password, country, phone number with country code, date of birth.
-- Email/password sign-in, email verification, forgot-password email, sign-out.
-- Username uniqueness reservation and private user profile document in Firestore.
-- Firestore security rules in firestore.rules.
+What this package adds
+- Email/password Create Account, Sign In, and Forgot Password.
+- Continue with Google using Firebase's mobile-friendly redirect flow.
+- Continue with Apple using Firebase OAuth (requires Apple Developer configuration).
+- On first Google/Apple sign-in, use the provider's display name as the full name and create a suggested unique username.
+- Redirect new social-login users to Profile Settings to finish country, phone number, date of birth, and username.
+- Profile Settings to update name, username, country, phone, date of birth, and profile picture.
+- Firebase Storage upload rules for profile pictures (JPG/PNG/WebP, under 5 MB).
+- Buyer is the default account role. Seller/admin privileges must be granted/approved by trusted backend logic, never by client-side form fields.
 
-Important: accounts will NOT work until you configure Firebase. Do not upload real user data while setup is incomplete.
+IMPORTANT PROJECT CHECK
+Your earlier Firebase screenshot showed project ID "mick-stream". The ZIP you uploaded before this update contained a different config (project ID "muizmarket-8b958"). To prevent connecting the website to the wrong project, firebase-config.js in this update is blank. Fill it with the complete web-app config copied from the exact Firebase project you intend to use for MuiZMarket. Do not guess or mix values from different projects.
 
-A. Create Firebase project (Android browser)
-1. Open https://console.firebase.google.com/ and create a project named MuiZMarket (or select an existing project).
-2. In Project settings, add a Web app (</> icon). Register it and copy its web config values.
-3. Authentication -> Sign-in method -> enable Email/Password.
-4. Authentication -> Settings / Authorized domains: ensure olalekan-oloto.github.io is authorized (Firebase may add it automatically; add it if missing).
-5. Firestore Database -> Create database. Start in production mode.
-6. In Firestore Rules, publish the contents of firestore.rules from this package. Do not leave test-mode rules enabled.
-7. Open firebase-config.js in GitHub and replace the four placeholder values with your Firebase web app's apiKey, authDomain, projectId and appId. Keep the quotation marks. These web config values identify the project; never paste a service-account JSON or private key into website files.
-8. Commit firebase-config.js and all new files to the main branch.
-9. Wait for GitHub Pages to deploy, then open https://olalekan-oloto.github.io/MuiZMarket/account.html (if the repository Pages URL includes /MuiZMarket/). If your current working site is the user-site URL https://olalekan-oloto.github.io/, open https://olalekan-oloto.github.io/account.html instead.
+A. FINISH FIREBASE SETUP
+1. Open https://console.firebase.google.com/ and select the correct MuiZMarket project.
+2. Project settings (gear icon) -> General -> Your apps. Select the web app or add one (</>).
+3. Copy the complete web config. In firebase-config.js, fill apiKey, authDomain, projectId, storageBucket, messagingSenderId and appId. Measurement ID is optional.
+4. Authentication -> Sign-in method (sometimes shown under Build -> Authentication):
+   - Enable Email/Password.
+   - Enable Google. Choose a project support email if prompted.
+   - Enable Apple only after completing the Apple Developer configuration in section C.
+5. Authentication -> Settings -> Authorized domains. Add:
+   olalekan-oloto.github.io
+   Keep the project's Firebase authDomain too. If your Pages site uses a different exact hostname, add that hostname.
+6. Build -> Firestore Database -> Create database, preferably production mode.
+7. Firestore -> Rules: replace with the contents of firestore.rules in this package and Publish.
+8. Build -> Storage -> Get started. Set up the bucket, then Storage -> Rules: replace with storage.rules and Publish. If Firebase asks for a billing-plan upgrade for Storage, do not proceed unless you understand the plan and costs; profile-photo upload will not work until Storage is available.
+9. Authentication email templates: review the verification and password-reset messages before opening registration to public users.
 
-B. Upload files from Android
-1. Extract the ZIP on your phone.
-2. In GitHub repository -> Add file -> Upload files, upload account.html, account.css, auth.js, firebase-config.js, firestore.rules, SETUP-FIREBASE.txt, plus the updated app.js.
-3. If GitHub's mobile file picker doesn't keep the files in the repository root, open each file path in GitHub and use the pencil/Edit button to add or replace it. These files must sit beside index.html and styles.css.
-4. Tap Commit changes to main.
-5. Replace firebase-config.js placeholders with your actual Firebase web config only after creating the project.
+B. GOOGLE SIGN-IN
+1. In Firebase Authentication -> Sign-in method, enable Google and save.
+2. Make sure olalekan-oloto.github.io is in Authorized domains.
+3. Deploy the website to GitHub Pages over HTTPS.
+4. Tap Continue with Google on account.html. On Android, Firebase redirects to Google's sign-in screen, then returns to MuiZMarket.
+5. On first sign-in, the profile is created from the Google account name and the user is sent to settings.html to complete remaining details.
 
-C. Security notes
-- Firebase Authentication handles password storage; this project never writes raw passwords to Firestore.
-- Email verification is required before the app treats a user as signed in.
-- Firestore rules restrict each profile to its owner. Username lookup docs expose only the chosen username key and UID; do not store private data in them.
-- Date of birth and phone number are sensitive personal information. Collect them only if needed, restrict access, and publish a privacy notice. The rules permit only the signed-in owner to read their profile.
-- Client-side validation improves the experience but is not a substitute for server-side validation and abuse protection. Consider App Check and rate limiting for a production marketplace.
-- This creates authentication and a basic profile only. It does NOT yet make orders, payments, seller payouts, or checkout production-ready.
+C. APPLE SIGN-IN (MORE SETUP REQUIRED)
+Apple sign-in cannot be activated only by adding a button. Firebase requires an Apple Developer Program account and Apple-side identifiers/keys.
+1. In Apple Developer, configure Sign in with Apple for a website and create a Services ID.
+2. Register this Firebase return URL with Apple:
+   https://YOUR_FIREBASE_PROJECT_ID.firebaseapp.com/__/auth/handler
+   Replace YOUR_FIREBASE_PROJECT_ID with the actual project ID (for the project in the screenshot, it would be mick-stream only if that is the project you use).
+3. Create an Apple Sign in private key. In Firebase Authentication -> Sign-in method -> Apple, enter the Services ID, Apple Team ID, Key ID and private key as requested.
+4. If Firebase emails must reach Apple private relay addresses, follow Apple's email-relay setup instructions for Firebase's sender address.
+5. Save and test on HTTPS. Apple may provide the user's name only the first time they authorize the app; the account profile stores it for later visits.
+6. If you do not have the required Apple Developer setup yet, the Apple button will show a configuration error until you finish it. Google and email/password can be configured separately.
 
-D. Testing
-1. Open account.html, create a test account using an email you control.
-2. Check that inbox/spam folder for Firebase verification email and verify it.
-3. Return to account.html and sign in.
-4. Test Forgot password with the same email.
-5. Never test with someone else's email or reuse a personal password.
+D. UPLOAD TO GITHUB FROM ANDROID
+1. Download and extract MuiZMarket-Real-Accounts-Social-Profile.zip on your phone.
+2. Open https://github.com/Olalekan-oloto/MuiZMarket
+3. Tap Add file -> Upload files.
+4. Upload the CONTENTS of the extracted folder into the same root folder where index.html and styles.css live. Do not upload an outer folder containing the files.
+5. Upload/replace these files from the ZIP:
+   account.html, account.css, auth.js, firebase-config.js, firestore.rules,
+   storage.rules, settings.html, settings.css, settings.js,
+   SETUP-FIREBASE.txt, PROFILE-AND-SOCIAL-LOGIN-SETUP.txt
+   Keep your existing homepage and other marketplace pages unless this package includes a corrected version.
+6. Tap Commit changes to main.
+7. Open Settings -> Pages and confirm deployment is from main / (root). Wait for deployment.
+8. Complete the Firebase settings above. The code will not authenticate until the correct config and providers are enabled.
+
+E. TEST ON YOUR PHONE
+1. Open https://olalekan-oloto.github.io/MuiZMarket/account.html
+2. Test Google sign-in first. Use your own test Google account.
+3. The first social sign-in should open settings.html. Fill in country, phone with +country code, date of birth, and save.
+4. Test Sign Out, then Sign In again.
+5. Test email/password registration and Forgot Password with an email you control.
+6. Apple sign-in requires the Apple configuration in section C; a visible button does not mean Apple has been activated.
+7. Never use someone else's email or password for testing.
+
+SECURITY AND LIMITATIONS
+- Firebase Authentication stores passwords; MuiZMarket does not store raw passwords in Firestore.
+- Google/Apple authentication proves control of that provider account; it does not verify the user's phone number.
+- Phone and date of birth are stored as profile data and should be collected only if needed. Publish a privacy notice and restrict profile access.
+- The Storage rule allows anyone to read profile picture files for public profile display, but only that same signed-in user can upload/replace their own picture.
+- Do not put service-account JSON, Firebase Admin private keys, or privileged API secrets in GitHub Pages files.
+- The client-side code never grants admin privileges. Seller approval, subscriptions, payments, orders, withdrawals and other marketplace financial operations still require a trusted backend. GitHub Pages cannot run server.js.
+
+
+ACCOUNT ROLES, COUNTRIES, AND SELLER VIDEO PREVIEW
+- The Create Account form now lets a new user choose Buyer or Seller. After account creation, the site redirects to the matching dashboard. Email verification is still required before protected account actions.
+- Country choices use the full ISO country list. Phone input uses intl-tel-input from a CDN, with a selectable international dialing code; keep an internet connection available.
+- The seller dashboard includes a local video preview button. This only previews a selected video in the browser; it does NOT upload or publish a product. Secure product video uploads/listing moderation require the deployed API and explicit Storage rules.
+- Owner dashboard: open support-inbox.html. Access is not granted by a page link: configure your own Firebase Auth UID in the backend ADMIN_UIDS environment variable and deploy server.js. Never make admin access depend on a user-editable profile field.
+- Google sign-in currently creates a buyer profile by default unless the user later selects a role in the email registration form. Apple sign-in must be separately enabled and configured in Firebase and Apple Developer settings.
