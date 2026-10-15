@@ -1,0 +1,16 @@
+MuiZMarket Wallet + Premium Dashboard update
+
+Included changes:
+- Updated pages.js with buyer and seller wallet summary cards, review sections, premium plan labels (1 month, 3 months, 1 year), and seller 10% platform-fee explanation.
+- Updated styles.css and dashboard loader accents to blue/black/white.
+- Preserved firebase-config.js (it is not included in this ZIP).
+
+IMPORTANT LIMITATIONS:
+This is a front-end dashboard update only. It intentionally does NOT fake deposits, withdrawals, premium purchases, balances, earnings, or reviews. Buttons explain that payments are not connected. A static GitHub Pages site and client-side Firestore rules cannot securely process money or verify a paid subscription. To activate Premium automatically and move real money, you must connect a trusted payment provider and secure server-side verification. Do not allow users to write their own wallet balance or premium status from the browser.
+
+How to apply:
+1. Extract this ZIP.
+2. Upload/replace mm/pages.js and mm/styles.css in your GitHub repository root (where the live pages.js and styles.css are).
+3. If your GitHub repository stores files inside a subfolder, replace the corresponding files in that same deployed folder instead.
+4. Keep your existing firebase-config.js and existing Firestore rules unchanged for this UI-only update.
+5. Wait for GitHub Pages to deploy, then hard-refresh the website.
