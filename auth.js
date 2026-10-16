@@ -12,7 +12,7 @@
   const view = which => { currentView=which; registerForm.hidden=which!=='register'; loginForm.hidden=which!=='login'; resetForm.hidden=which!=='reset'; tabs.forEach(t=>t.classList.toggle('active',t.dataset.view===which)); title.textContent=which==='register'?'Create your account':which==='login'?'Sign in':'Reset your password'; subtitle.textContent=which==='register'?'Join the marketplace to manage your digital purchases.':which==='login'?'Welcome back. Sign in to your MuiZMarket account.':'We will email you a secure password-reset link.'; say(''); };
   tabs.forEach(t=>t.addEventListener('click',()=>view(t.dataset.view)));
   $('#forgotLink').addEventListener('click',()=>view('reset')); $('#backToLogin').addEventListener('click',()=>view('login'));
-  if(!configReady || !window.firebase) { $('#setupNotice').hidden=false; say('Firebase setup is not complete. Fill firebase-config.js with the web app settings for the correct Firebase project, then enable Authentication and Firestore.','error'); [...document.querySelectorAll('form button[type="submit"],#googleAuth,#appleAuth')].forEach(b=>b.disabled=true); return; }
+  if(!configReady || !window.firebase) { $('#setupNotice').hidden=false; say('Firebase setup is not complete. Fill firebase-config.js with the web app settings for the correct Firebase project, then enable Authentication and Firestore.','error'); [...document.querySelectorAll('form button[type="submit"],#googleAuth')].forEach(b=>b.disabled=true); return; }
   try { if(!firebase.apps.length) firebase.initializeApp(config); auth=firebase.auth(); db=firebase.firestore(); auth.useDeviceLanguage(); }
   catch(err){ $('#setupNotice').hidden=false; say('Firebase setup error: '+err.message,'error'); return; }
 
@@ -28,13 +28,9 @@
       'auth/too-many-requests':'Too many attempts. Wait a while before trying again.',
       'auth/network-request-failed':'Network error. Check your connection and try again.',
       'auth/operation-not-allowed':'This sign-in method is not enabled in Firebase Authentication yet.',
-      'auth/unauthorized-domain':'This website domain is not authorized. In Firebase Console → Authentication → Settings → Authorized domains, add olalekan-oloto.github.io.',
+      'auth/unauthorized-domain':'This website domain is not authorized. Add olalekan-oloto.github.io under Firebase Authentication settings → Authorized domains.',
       'auth/popup-blocked':'Your browser blocked the sign-in window. Try again or allow pop-ups.',
       'auth/operation-not-supported-in-this-environment':'This sign-in method is not supported in this browser context. Open the HTTPS GitHub Pages website in Chrome.',
-      'auth/invalid-api-key':'Firebase API key is missing or incorrect. Check the existing firebase-config.js file.',
-      'auth/account-exists-with-different-credential':'This email already has an account using another sign-in method. Sign in with that method first.',
-      'auth/invalid-oauth-client-id':'The Apple provider is not configured correctly in Firebase.',
-      'auth/missing-or-invalid-nonce':'Apple sign-in did not return a valid security nonce. Try again and check the Apple provider configuration.',
       'permission-denied':'Firestore denied a profile operation. Check that the updated firestore.rules have been published.',
       'storage/unauthorized':'Firebase Storage denied this photo upload. Publish the storage.rules file and check that Storage is enabled.'
     };
@@ -110,15 +106,14 @@
     const button=$('#'+providerName+'Auth'); setBusy(button,true);
     try {
       let provider;
-      if(providerName==='google') provider=new firebase.auth.GoogleAuthProvider();
-      else { provider=new firebase.auth.OAuthProvider('apple.com'); provider.addScope('email'); provider.addScope('name'); }
+      if(providerName!=='google') throw new Error('Only Google sign-in is available.');
+      provider=new firebase.auth.GoogleAuthProvider();
       await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
       // Redirect is the recommended OAuth flow on mobile browsers.
       await auth.signInWithRedirect(provider);
     } catch(err) { say(cleanError(err),'error'); setBusy(button,false); }
   }
   $('#googleAuth').addEventListener('click',()=>oauth('google'));
-  $('#appleAuth').addEventListener('click',()=>oauth('apple'));
   auth.getRedirectResult().then(async result=>{
     if(result && result.user) {
       await ensureProfile(result.user);
@@ -143,7 +138,7 @@
       await ensureProfile(credential.user,{fullName,username,country,phone,dob,role});
       let verificationSent=true;
       try { await credential.user.sendEmailVerification({url:window.location.href,handleCodeInApp:false}); } catch(err){verificationSent=false;console.error('Verification email failed',err);}
-      say('Account created successfully. Opening your '+(role==='seller'?'seller':'buyer')+' dashboard…','success');
+      say(verificationSent?'Account created! Check your email to verify your address. Opening your '+(role==='seller'?'seller':'buyer')+' dashboard…':'Account created, but the verification email could not be sent. Check Firebase email settings. Opening your dashboard…','success');
       const target=role==='seller'?'./seller.html':'./buyer.html'; window.setTimeout(()=>window.location.assign(new URL(target,window.location.href).href),1200);
     } catch(err) {
       console.error('MuiZMarket registration failed',err);
@@ -157,6 +152,7 @@
     try {
       const result=await auth.signInWithEmailAndPassword(norm(f.get('email')),String(f.get('password')));
       await result.user.reload(); const user=auth.currentUser||result.user;
+      if(!user.emailVerified){try{await user.sendEmailVerification({url:window.location.href,handleCodeInApp:false});}catch(_){} await auth.signOut();say('Please verify your email first. Check your inbox and spam folder for the verification link.','error');return;}
       await ensureProfile(user); await continueUser(user);
     } catch(err){say(cleanError(err),'error');} finally{setBusy(loginForm,false);}
   });
